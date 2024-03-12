@@ -364,6 +364,8 @@ int main(int argc, char *argv[])
          if(D >= HGen->GetNbinsX())
             continue;
 
+         cout << D << endl;
+
          RooUnfoldSvd SVDUnfold(Response, HInput, D);
          SVDUnfold.SetNToys(1000);
          SVDUnfold.SetVerbose(-1);
@@ -372,7 +374,7 @@ int main(int argc, char *argv[])
          TH1D *HFold = ForwardFold(HUnfolded[HUnfolded.size()-1], HResponse);
          HFold->SetName(Form("HRefoldedSVD%d", D));
          HRefolded.push_back(HFold);
-         // if (D == 1) HDVector = (TH1 *) SVDUnfold.Impl()->GetD()->Clone("HDVector");
+         if (D == 1) HDVector = (TH1 *) SVDUnfold.Impl()->GetD()->Clone("HDVector");
       }
    }
 
