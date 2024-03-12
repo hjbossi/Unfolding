@@ -293,14 +293,14 @@ int main(int argc, char *argv[])
    vector<TGraph *> Graphs;
    vector<TSpline *> Splines;
    map<string, TMatrixD> Covariance;
+   TH1D* HDVector = nullptr;
 
    RooUnfoldResponse *Response = new RooUnfoldResponse(HReco, HGen, HResponse);
 
    if(DoBayes == true)
    {
-      // vector<int> Iterations{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 32, 34, 36, 38, 40, 42, 44, 46, 48, 50, 52, 54, 56, 58, 60, 62, 64, 66, 68, 70, 80, 90, 100, 125, 150, 200, 250};
-      vector<int> Iterations{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30};
-      // vector<int> Iterations{1, 2, 3, 4, 5};
+      vector<int> Iterations{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 105, 110, 115, 120, 125, 130, 135, 140, 145, 150};
+
       for(int I : Iterations)
       {
          cout << I << endl;
@@ -357,10 +357,9 @@ int main(int argc, char *argv[])
    
    if(DoSVD == true)
    {
-      // vector<double> SVDRegularization{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 32, 34, 36, 38, 40, 42, 44, 46, 48, 50, 52, 54, 56, 58, 60, 62, 64, 66, 68, 70, 80, 90, 100, 125, 150};
-      vector<double> SVDRegularization{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 18, 20, 22, 24, 26, 28, 30, 35, 40, 45, 50, 55, 60, 65, 70, 80, 90, 100, 125, 150, 200, 250};
-      // vector<double> SVDRegularization{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
-      for(double D : SVDRegularization)
+      vector<int> SVDRegularization{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65};
+
+      for(int D : SVDRegularization)
       {
          if(D >= HGen->GetNbinsX())
             continue;
@@ -368,11 +367,12 @@ int main(int argc, char *argv[])
          RooUnfoldSvd SVDUnfold(Response, HInput, D);
          SVDUnfold.SetNToys(1000);
          SVDUnfold.SetVerbose(-1);
-         HUnfolded.push_back((TH1 *)(SVDUnfold.Hunfold(ErrorChoice)->Clone(Form("HUnfoldedSVD%.1f", D))));
-         Covariance.insert(pair<string, TMatrixD>(Form("MUnfoldedSVD%.1f", D), SVDUnfold.Eunfold()));
+         HUnfolded.push_back((TH1 *)(SVDUnfold.Hunfold(ErrorChoice)->Clone(Form("HUnfoldedSVD%d", D))));
+         Covariance.insert(pair<string, TMatrixD>(Form("MUnfoldedSVD%d", D), SVDUnfold.Eunfold()));
          TH1D *HFold = ForwardFold(HUnfolded[HUnfolded.size()-1], HResponse);
-         HFold->SetName(Form("HRefoldedSVD%.1f", D));
+         HFold->SetName(Form("HRefoldedSVD%d", D));
          HRefolded.push_back(HFold);
+         HDVector = (TH1 *) SVDUnfold->Impl()->GetD();
       }
    }
 
@@ -496,6 +496,7 @@ int main(int argc, char *argv[])
    for(auto I : Covariance)    I.second.Write(I.first.c_str());
    // InputFile.Get("HMCRecoGenBin")->Clone("HMCMeasuredGenBin")->Write();
    // InputFile.Get("HDataRecoGenBin")->Clone("HInputGenBin")->Write();
+   if(HDVector != nullptr) HDVector->Clone("HDVector")->Write();
 
    InputFile.Get("HGenPrimaryBinMin")->Clone()->Write();
    InputFile.Get("HGenPrimaryBinMax")->Clone()->Write();
