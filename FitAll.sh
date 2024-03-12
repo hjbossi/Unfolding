@@ -11,9 +11,6 @@ mkdir -p log/$Tag/Bayes/MC/$Type
 
 echo Running $Tag
 
-export LD_LIBRARY_PATH=/Applications/root_v6.14.00/lib:/Users/Molly/Desktop/Unfolding/RooUnfold/build/
-export DYLD_LIBRARY_PATH=/Applications/root_v6.14.00/lib
-
 for i in `ls Input/$Tag/`
 do
    echo $i

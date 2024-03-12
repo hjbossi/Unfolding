@@ -19,25 +19,30 @@ SetupRooUnfoldCMake:
 	(cd RooUnfold/ && mkdir -p build && cd build/ && cmake .. && make -j4)
 
 # If you use the make version
-# Execute: Unfold1D.cpp
-# 	g++ Unfold1D.cpp -o Execute \
-# 		-IRooUnfold/src -LRooUnfold/ -lRooUnfold \
-# 		`root-config --cflags --glibs`
-
-# If you use the CMake version
 Execute: Unfold1D.cpp
 	g++ Unfold1D.cpp -o Execute \
-		-I/Users/Molly/Desktop/Unfolding/RooUnfold/build/ -L/Users/Molly/Desktop/Unfolding/RooUnfold/build/ -lRooUnfold \
-		`root-config --cflags --glibs`
-
-ExecuteScaled: Unfold1DScaled.cpp
-	g++ Unfold1DScaled.cpp -o ExecuteScaled \
-		-I/Users/Molly/Desktop/Unfolding/RooUnfold/build/ -L/Users/Molly/Desktop/Unfolding/RooUnfold/build/ -lRooUnfold \
+		-I/home/submit/mitay/physics/PhotonJet2018/Unfolding/Unfolding/RooUnfold/src -L/home/submit/mitay/physics/PhotonJet2018/Unfolding/Unfolding/RooUnfold/ -lRooUnfold \
 		`root-config --cflags --glibs`
 
 ExecuteMSE: Unfold1DMSE.cpp
 	g++ Unfold1DMSE.cpp -o ExecuteMSE \
-		-I/Users/Molly/Desktop/Unfolding/RooUnfold/build/ -L/Users/Molly/Desktop/Unfolding/RooUnfold/build/ -lRooUnfold \
+		-I/home/submit/mitay/physics/PhotonJet2018/Unfolding/Unfolding/RooUnfold/src -L/home/submit/mitay/physics/PhotonJet2018/Unfolding/Unfolding/RooUnfold/ -lRooUnfold \
 		`root-config --cflags --glibs`
 
-RunTest: Execute ExecuteScaled ExecuteMSE
+# If you use the CMake version
+# Execute: Unfold1D.cpp
+#	g++ Unfold1D.cpp -o Execute \
+#		-I/Users/Molly/Desktop/Unfolding/RooUnfold/build/ -L/Users/Molly/Desktop/Unfolding/RooUnfold/build/ -lRooUnfold \
+# 		`root-config --cflags --glibs`
+
+# ExecuteScaled: Unfold1DScaled.cpp
+#	g++ Unfold1DScaled.cpp -o ExecuteScaled \
+#		-I/Users/Molly/Desktop/Unfolding/RooUnfold/build/ -L/Users/Molly/Desktop/Unfolding/RooUnfold/build/ -lRooUnfold \
+#		`root-config --cflags --glibs`
+
+# ExecuteMSE: Unfold1DMSE.cpp
+#	g++ Unfold1DMSE.cpp -o ExecuteMSE \
+#		-I/Users/Molly/Desktop/Unfolding/RooUnfold/build/ -L/Users/Molly/Desktop/Unfolding/RooUnfold/build/ -lRooUnfold \
+#		`root-config --cflags --glibs`
+
+RunTest: Execute ExecuteMSE
