@@ -377,7 +377,7 @@ int main(int argc, char *argv[])
          // if (D == 1) HDVector = (TH1 *) SVDUnfold.Impl()->GetD()->Clone("HDVector");
          if(D == 1) {
             HDVector = SVDUnfold.Impl()->GetD();
-            if(SVDUnfold.Impl()->GetD() == nullptr) cout << "NULL" << endl;
+            if(SVDUnfold.Impl() == nullptr) cout << "NULL" << endl;
             // HDVector->Print("all");
          }
       }
