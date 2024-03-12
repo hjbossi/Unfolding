@@ -374,7 +374,11 @@ int main(int argc, char *argv[])
          TH1D *HFold = ForwardFold(HUnfolded[HUnfolded.size()-1], HResponse);
          HFold->SetName(Form("HRefoldedSVD%d", D));
          HRefolded.push_back(HFold);
-         if (D == 1) HDVector = (TH1 *) SVDUnfold.Impl()->GetD()->Clone("HDVector");
+         // if (D == 1) HDVector = (TH1 *) SVDUnfold.Impl()->GetD()->Clone("HDVector");
+         if(D == 1) {
+            HDVector = SVDUnfold.Impl()->GetD();
+            HDVector->Print("all");
+         }
       }
    }
 
