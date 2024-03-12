@@ -19,7 +19,7 @@ echo Running $Tag
 
 for i in `ls /data/submit/mitay/unfolding/${Date}/Input/Data/$Tag/`
 do
-    echo $i
+    # echo $i
     echo "./Execute --Input /data/submit/mitay/unfolding/${Date}/Input/Data/$Tag/$i --Output /data/submit/mitay/unfolding/${Date}/Output/Data/$Tag/Bayes/MC/$Type/$i --Prior MC --DoBayes true --DoRepeatedBayes false --DoSVD false --DoTSVD false --DoInvert false --DoTUnfold false --DoFit false --Error $Type > /data/submit/mitay/unfolding/${Date}/Output/Data/log/$Tag/Bayes/MC/$Type/$i.txt 2>&1  &"
     # ./Execute --Input /data/submit/mitay/unfolding/${Date}/Input/Data/$Tag/$i --Output /data/submit/mitay/unfolding/${Date}/Output/Data/$Tag/Bayes/MC/$Type/$i --Prior MC --DoBayes true --DoRepeatedBayes false --DoSVD false --DoTSVD false --DoInvert false --DoTUnfold false --DoFit false --Error $Type > /data/submit/mitay/unfolding/${Date}/Output/Data/log/$Tag/Bayes/MC/$Type/$i.txt 2>&1  &
     echo "./Execute --Input /data/submit/mitay/unfolding/${Date}/Input/Data/$Tag/$i --Output /data/submit/mitay/unfolding/${Date}/Output/Data/$Tag/SVD/MC/$Type/$i --Prior MC --DoBayes false --DoRepeatedBayes false --DoSVD true --DoTSVD false --DoInvert false --DoTUnfold false --DoFit false --Error $Type > /data/submit/mitay/unfolding/${Date}/Output/Data/log/$Tag/SVD/MC/$Type/$i.txt 2>&1  &"
