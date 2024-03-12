@@ -17,7 +17,7 @@ mkdir -p /data/submit/mitay/unfolding/${Date}/Output/Theory/log/$Tag/SVD/Flat/$T
 
 echo Running $Tag
 
-for i in `ls Theory/$Tag/`
+for i in `ls /data/submit/mitay/unfolding/${Date}/Input/Theory/$Tag/`
 do
     echo $i
     # echo "./ExecuteMSE --Input /data/submit/mitay/unfolding/${Date}/Input/Theory/$Tag/$i --Output /data/submit/mitay/unfolding/${Date}/Output/Theory/$Tag/Bayes/MC/$Type/$i --Prior MC --DoBayes true --DoRepeatedBayes false --DoSVD false --DoTSVD false --DoInvert false --DoTUnfold false --DoFit false --Error $Type > /data/submit/mitay/unfolding/${Date}/Output/Theory/log/$Tag/Bayes/MC/$Type/$i.txt 2>&1  &"
