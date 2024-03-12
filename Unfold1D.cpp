@@ -293,7 +293,7 @@ int main(int argc, char *argv[])
    vector<TGraph *> Graphs;
    vector<TSpline *> Splines;
    map<string, TMatrixD> Covariance;
-   TH1D* HDVector = nullptr;
+   TH1* HDVector = nullptr;
 
    RooUnfoldResponse *Response = new RooUnfoldResponse(HReco, HGen, HResponse);
 
