@@ -293,7 +293,6 @@ int main(int argc, char *argv[])
    vector<TGraph *> Graphs;
    vector<TSpline *> Splines;
    map<string, TMatrixD> Covariance;
-   TH1* HDVector = nullptr;
 
    RooUnfoldResponse *Response = new RooUnfoldResponse(HReco, HGen, HResponse);
 
@@ -374,12 +373,6 @@ int main(int argc, char *argv[])
          TH1D *HFold = ForwardFold(HUnfolded[HUnfolded.size()-1], HResponse);
          HFold->SetName(Form("HRefoldedSVD%d", D));
          HRefolded.push_back(HFold);
-         // if (D == 1) HDVector = (TH1 *) SVDUnfold.Impl()->GetD()->Clone("HDVector");
-         if(D == 1) {
-            HDVector = SVDUnfold.Impl()->GetD();
-            if(SVDUnfold.Impl() == nullptr) cout << "NULL" << endl;
-            // HDVector->Print("all");
-         }
       }
    }
 
@@ -503,7 +496,6 @@ int main(int argc, char *argv[])
    for(auto I : Covariance)    I.second.Write(I.first.c_str());
    // InputFile.Get("HMCRecoGenBin")->Clone("HMCMeasuredGenBin")->Write();
    // InputFile.Get("HDataRecoGenBin")->Clone("HInputGenBin")->Write();
-   if(HDVector != nullptr) HDVector->Clone("HDVector")->Write();
 
    InputFile.Get("HGenPrimaryBinMin")->Clone()->Write();
    InputFile.Get("HGenPrimaryBinMax")->Clone()->Write();
