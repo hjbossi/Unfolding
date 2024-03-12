@@ -373,7 +373,7 @@ int main(int argc, char *argv[])
          HFold->SetName(Form("HRefoldedSVD%d", D));
          HRefolded.push_back(HFold);
          HDVector = (TH1 *) SVDUnfold.Impl()->GetD()->Clone(Form("HDVector%d", D));
-         cout << HDVector != nullptr << endl;
+         cout << (HDVector != nullptr) << endl;
       }
    }
 
