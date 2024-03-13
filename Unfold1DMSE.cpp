@@ -35,7 +35,7 @@ TH1D *ConstructPriorCopy(TH1D *HMC);
 TH1D *ConstructPriorCopyExternal(string FileName, string HistName);
 TH1D *ConstructPriorFlat(vector<double> GenBinsPrimary, vector<double> GenBinsSecondary);
 void DoProjection(TH2D *HResponse, TH1D **HGen, TH1D **HReco);
-TH1D *ForwardFold(TH1 *HGen, TH2D *HResponse);
+TH1D *ForwardFold(TH1 *HGen, TH2D *HResponse, TH1 *HErrors = nullptr);
 TH1D *VaryWithinError(TH1D *H);
 TH1D* GetVariance(vector<vector<TH1 *>> &Asimov, vector<int> &Regularization, vector<TH1 *> &Dists);
 TH1D* GetBias(vector<vector<TH1 *>> &Asimov, TH1* HTruth, vector<int> &Regularization, vector<TH1 *> &Dists);
@@ -191,7 +191,8 @@ int main(int argc, char *argv[])
    CommandLine CL(argc, argv);
 
    string InputFileName    = CL.Get("Input");
-   string DataName         = CL.Get("InputName",           "HDataReco");
+   string DataName         = CL.Get("InputName",           "HDataGen");
+   string ErrorName        = CL.Get("ErrorName",           "HDataErrors");
    string ResponseName     = CL.Get("ResponseName",        "HResponse");
    string ResponseTruth    = CL.Get("ResponseTruth",       "HMCGen");
    string ResponseMeasured = CL.Get("ResponseMeasured",    "HMCReco");
@@ -213,6 +214,7 @@ int main(int argc, char *argv[])
    TH2D *HResponse = (TH2D *)InputFile.Get(ResponseName.c_str());
    TH2D *HRawResponse = (TH2D *)HResponse->Clone("HRawResponse");
    TH1D *HInputGen    = (TH1D *)InputFile.Get(DataName.c_str())->Clone();
+   TH1D *HInputErrors  = (TH1D *)InputFile.Get(ErrorName.c_str())->Clone();
 
    int NGen = HResponse->GetNbinsY();
    int NReco = HResponse->GetNbinsX();
@@ -273,14 +275,13 @@ int main(int argc, char *argv[])
       vector<double> GenBinsSecondary = DetectBins((TH1D *)InputFile.Get("HGenBinningBinMin"),
                                                    (TH1D *)InputFile.Get("HGenBinningBinMax"));
 
-      TH1D *HError = ConstructPriorCopy(HTruth);
       HPrior = ConstructPriorFlat(GenBinsPrimary, GenBinsSecondary);
 
       int NX = HPrior->GetNbinsX();
 
       for(int iX = 1; iX <= NX; iX++)
       {
-         HPrior->SetBinError(iX, HError->GetBinError(iX));
+         HPrior->SetBinError(iX, HInputErrors->GetBinError(iX));
       }
    }
    else if(PriorChoice == "Original")
@@ -300,7 +301,7 @@ int main(int argc, char *argv[])
    TH1D *HReco = nullptr;
    DoProjection(HResponse, &HGen, &HReco);
 
-   TH1D *HInputReco = ForwardFold(HInputGen, HResponse);
+   TH1D *HInputReco = ForwardFold(HInputGen, HResponse, HInputErrors);
 
    vector<TH1 *> HAsimov;
    vector<vector<TH1 *>> HUnfolded(NA, vector<TH1 *>(0));
@@ -593,7 +594,7 @@ void DoProjection(TH2D *HResponse, TH1D **HGen, TH1D **HReco)
    }
 }
 
-TH1D *ForwardFold(TH1 *HGen, TH2D *HResponse)
+TH1D *ForwardFold(TH1 *HGen, TH2D *HResponse, TH1 *HErrors = nullptr)
 {
    if(HGen == nullptr || HResponse == nullptr)
       return nullptr;
@@ -638,6 +639,13 @@ TH1D *ForwardFold(TH1 *HGen, TH2D *HResponse)
          double Error = HResult->GetBinError(iR);
          Error = sqrt(Error * Error + E * E);
          HResult->SetBinError(iR, Error);
+      }
+   }
+
+   if(HErrors != nullptr) {
+      for(int iR = 1; iR <= NReco; iR++)
+      {
+         HResult->SetBinError(iR, HErrors->GetBinError(iR));
       }
    }
 
