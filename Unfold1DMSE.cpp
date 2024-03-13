@@ -594,7 +594,7 @@ void DoProjection(TH2D *HResponse, TH1D **HGen, TH1D **HReco)
    }
 }
 
-TH1D *ForwardFold(TH1 *HGen, TH2D *HResponse, TH1 *HErrors = nullptr)
+TH1D *ForwardFold(TH1 *HGen, TH2D *HResponse, TH1 *HErrors)
 {
    if(HGen == nullptr || HResponse == nullptr)
       return nullptr;
