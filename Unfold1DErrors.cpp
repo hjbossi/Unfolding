@@ -630,8 +630,8 @@ TH1D *ForwardFold(TH1 *HGen, TH2D *HResponse)
 
 TH1D *Collapse(TH1 *HFlat, vector<double> &BinsPrimary, vector<double> &BinsSecondary, int Axis) 
 {
-   int N = GenBinsPrimary.size() - 1; 
-   int M = GenBinsSecondary.size() - 1; 
+   int N = BinsPrimary.size() - 1; 
+   int M = BinsSecondary.size() - 1; 
 
    TH1D *HCollapse;
    TH2D *HVariance = Variance(HFlat, BinsPrimary, BinsSecondary);
