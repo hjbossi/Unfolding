@@ -636,8 +636,8 @@ TH1D *Collapse(TH1 *HFlat, vector<double> &BinsPrimary, vector<double> &BinsSeco
    TH1D *HCollapse;
    TH2D *HVariance = Variance(HFlat, BinsPrimary, BinsSecondary);
 
-   if(Axis == 0) HCollapse = new TH1D(Form("HCollapseAxis%d", Axis), "", N, &GenBinsPrimary[0]);
-   else          HCollapse = new TH1D(Form("HCollapseAxis%d", Axis), "", M, &GenBinsSecondary[0]);
+   if(Axis == 0) HCollapse = new TH1D(Form("HCollapseAxis%d", Axis), "", N, &BinsPrimary[0]);
+   else          HCollapse = new TH1D(Form("HCollapseAxis%d", Axis), "", M, &BinsSecondary[0]);
 
    for(int iX = 1; iX <= N; iX++)
    {
