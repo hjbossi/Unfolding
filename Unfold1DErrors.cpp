@@ -637,34 +637,34 @@ TH1D *Collapse(TH1 *HFlat, vector<double> &BinsPrimary, vector<double> &BinsSeco
    if(Axis == 0) HCollapse = new TH1D(Form("HCollapseAxis%d", Axis), "", N, &BinsPrimary[0]);
    else          HCollapse = new TH1D(Form("HCollapseAxis%d", Axis), "", M, &BinsSecondary[0]);
 
-   for(int iX = 1; iX <= N; iX++)
-   {
-      for(int iY = 1; iY <= M; iY++)
-      {
-         int Index = iX + (iY-1) * N;
+   // for(int iX = 1; iX <= N; iX++)
+   // {
+   //    for(int iY = 1; iY <= M; iY++)
+   //    {
+   //       int Index = iX + (iY-1) * N;
 
-         if(Axis == 0) 
-         {
-            double Content = HFlat->GetBinContent(Index) + HCollapse->GetBinContent(iX);
-            double E = HFlat->GetBinError(Index);
-            double Error = HCollapse->GetBinError(iX);
-            Error = sqrt(Error * Error + E * E);
+   //       if(Axis == 0) 
+   //       {
+   //          double Content = HFlat->GetBinContent(Index) + HCollapse->GetBinContent(iX);
+   //          double E = HFlat->GetBinError(Index);
+   //          double Error = HCollapse->GetBinError(iX);
+   //          Error = sqrt(Error * Error + E * E);
             
-            HCollapse->SetBinContent(iX, Content);
-            HCollapse->SetBinError(iX, Error);
-         }
-         else 
-         {
-            double Content = HFlat->GetBinContent(Index) + HCollapse->GetBinContent(iY);
-            double E = HFlat->GetBinError(Index);
-            double Error = HCollapse->GetBinError(iY);
-            Error = sqrt(Error * Error + E * E);
+   //          HCollapse->SetBinContent(iX, Content);
+   //          HCollapse->SetBinError(iX, Error);
+   //       }
+   //       else 
+   //       {
+   //          double Content = HFlat->GetBinContent(Index) + HCollapse->GetBinContent(iY);
+   //          double E = HFlat->GetBinError(Index);
+   //          double Error = HCollapse->GetBinError(iY);
+   //          Error = sqrt(Error * Error + E * E);
             
-            HCollapse->SetBinContent(iY, Content);
-            HCollapse->SetBinError(iY, Error);
-         }
-      }
-   }
+   //          HCollapse->SetBinContent(iY, Content);
+   //          HCollapse->SetBinError(iY, Error);
+   //       }
+   //    }
+   // }
 
    HCollapse->Scale(1., "width");
 
