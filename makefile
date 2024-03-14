@@ -50,4 +50,4 @@ ExecuteErrors: Unfold1DErrors.cpp
 #		-I/Users/Molly/Desktop/Unfolding/RooUnfold/build/ -L/Users/Molly/Desktop/Unfolding/RooUnfold/build/ -lRooUnfold \
 #		`root-config --cflags --glibs`
 
-RunTest: Execute ExecuteMSE
+RunTest: Execute ExecuteMSE ExecuteErrors
