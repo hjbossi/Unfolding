@@ -30,7 +30,7 @@ ExecuteMSE: Unfold1DMSE.cpp
 		`root-config --cflags --glibs`
 
 ExecuteErrors: Unfold1DErrors.cpp
-	g++ Unfold1DMSE.cpp -o ExecuteErrors \
+	g++ Unfold1DErrors.cpp -o ExecuteErrors \
 		-I/home/submit/mitay/physics/PhotonJet2018/Unfolding/Unfolding/RooUnfold/src -L/home/submit/mitay/physics/PhotonJet2018/Unfolding/Unfolding/RooUnfold/ -lRooUnfold \
 		`root-config --cflags --glibs`
 
