@@ -17,7 +17,7 @@ mkdir -p /data/submit/mitay/unfolding/${Date}/Errors/Data/log/$Tag/SVD/Flat/$Typ
 
 echo Running $Tag
 
-for i in AANominal0 AANominal1 AANominal2 AANominal3 PPNominal0
+for i in AANominal0.root AANominal1.root AANominal2.root AANominal3.root PPNominal0.root
 do
     # echo $i
     # ./ExecuteErrors --Input /data/submit/mitay/unfolding/${Date}/Input/Data/$Tag/$i --Output /data/submit/mitay/unfolding/${Date}/Errors/Data/$Tag/Bayes/MC/$Type/$i --Prior MC --DoBayes true --DoRepeatedBayes false --DoSVD false --DoTSVD false --DoInvert false --DoTUnfold false --DoFit false --Error $Type > /data/submit/mitay/unfolding/${Date}/Errors/Data/log/$Tag/Bayes/MC/$Type/$i.txt 2>&1  &
