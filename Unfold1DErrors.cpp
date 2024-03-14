@@ -659,7 +659,7 @@ TH1D *Collapse(TH1 *HFlat, vector<double> &BinsPrimary, vector<double> &BinsSeco
          {
             double Content = HFlat->GetBinContent(Index) + HCollapse->GetBinContent(iY);
             double E = HFlat->GetBinError(Index);
-            double Error = HCollapse->GetBinError(iY)
+            double Error = HCollapse->GetBinError(iY);
             Error = sqrt(Error * Error + E * E);
             
             HCollapse->SetBinContent(iY, Content);
