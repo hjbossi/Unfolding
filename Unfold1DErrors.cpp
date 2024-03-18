@@ -37,7 +37,7 @@ TH1D *ConstructPriorFlat(vector<double> &GenBinsPrimary, vector<double> &GenBins
 void DoProjection(TH2D *HResponse, TH1D **HGen, TH1D **HReco);
 TH1D *ForwardFold(TH1 *HGen, TH2D *HResponse);
 TH1D *Collapse(TH1 *HFlat, vector<double> &BinsPrimary, vector<double> &BinsSecondary, int Axis);
-H1D* GetVariance(vector<vector<TH1 *>> &Asimov, vector<int> &Regularization, vector<TH1 *> &Dists);
+TH1D* GetVariance(vector<vector<TH1 *>> &Asimov, vector<int> &Regularization, vector<TH1 *> &Dists);
 
 class Spectrum
 {
@@ -216,6 +216,7 @@ int main(int argc, char *argv[])
 
    int NGen = HResponse->GetNbinsY();
    int NReco = HResponse->GetNbinsX();
+   int NA = 50;
 
    RemoveOutOfRange(HMeasured);
    RemoveOutOfRange(HTruth);
