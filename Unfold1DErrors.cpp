@@ -9,6 +9,7 @@ using namespace std;
 #include "TError.h"
 #include "TSpline.h"
 #include "TGraph.h"
+#include "TRandom3.h"
 #include "Math/Minimizer.h"
 #include "Math/Factory.h"
 #include "Math/Functor.h"
