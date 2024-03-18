@@ -306,8 +306,6 @@ int main(int argc, char *argv[])
    vector<TH1 *> HAsimov;
    vector<vector<TH1 *>> HUnfolded(NA, vector<TH1 *>(0));
    vector<vector<TH1 *>> HRefolded(NA, vector<TH1 *>(0));
-   vector<vector<TGraph *>> Graphs(NA, vector<TGraph *>(0));
-   vector<vector<TSpline *>> Splines(NA, vector<TSpline *>(0));
    vector<map<string, TMatrixD>> Covariance(NA, map<string, TMatrixD>());
    TH1D *Variance;
    TH1D *Bias;
@@ -393,8 +391,6 @@ int main(int argc, char *argv[])
       if (A == 0) {
          for(TH1 *H : HUnfolded[A])     if(H != nullptr)   H->Write();
          for(TH1 *H : HRefolded[A])     if(H != nullptr)   H->Write();
-         for(TGraph *G : Graphs[A])     if(G != nullptr)   G->Write();
-         for(TSpline *S : Splines[A])   if(S != nullptr)   S->Write();
          for(auto I : Covariance[A])    I.second.Write(I.first.c_str());
       }
    }
