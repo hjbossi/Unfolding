@@ -343,7 +343,7 @@ int main(int argc, char *argv[])
             HUnfolded[A].push_back((TH1 *)(BayesUnfold.Hunfold(ErrorChoice)->Clone(Form("Test%dHUnfoldedBayes%d", A, I))));
             HUnfoldedFold0[A].push_back((TH1 *) Collapse(HUnfolded[A], GenBinsPrimary, GenBinsSecondary, 0)->Clone(Form("Test%dHUnfoldedBayes%dFold0", A, I)));
             HUnfoldedFold1[A].push_back((TH1 *) Collapse(HUnfolded[A], GenBinsPrimary, GenBinsSecondary, 1)->Clone(Form("Test%dHUnfoldedBayes%dFold1", A, I)));
-            
+
             Covariance[A].insert(pair<string, TMatrixD>(Form("Test%dMUnfoldedBayes%d", A, I), BayesUnfold.Eunfold()));
             TH1D *HFold = ForwardFold(HUnfolded[A][HUnfolded[A].size()-1], HResponse);
             HFold->SetName(Form("Test%dHRefoldedBayes%d", A, I));
@@ -394,13 +394,17 @@ int main(int argc, char *argv[])
    HInputFold0->Clone("HInputFold0")->Write();
    HInputFold1->Clone("HInputFold1")->Write();
    Variance->Clone("HVariance")->Write();
-   for(TH1 *H : HAsimov)         if(H != nullptr)   H->Write();
-   for(TH1 *H : VarianceDists)   if(H != nullptr)   H->Write();
+   for(TH1 *H : HAsimov)                     if(H != nullptr)   H->Write();
+   for(TH1 *H : VarianceDists)               if(H != nullptr)   H->Write();
+   for(TH1 *H : VarianceDistsFold0)          if(H != nullptr)   H->Write();
+   for(TH1 *H : VarianceDistsFold1)          if(H != nullptr)   H->Write();
    for(int A = 0; A < NA; A++) {
       if (A == 0) {
-         for(TH1 *H : HUnfolded[A])     if(H != nullptr)   H->Write();
-         for(TH1 *H : HRefolded[A])     if(H != nullptr)   H->Write();
-         for(auto I : Covariance[A])    I.second.Write(I.first.c_str());
+         for(TH1 *H : HUnfolded[A])          if(H != nullptr)   H->Write();
+         for(TH1 *H : HUnfoldedFold0[A])     if(H != nullptr)   H->Write();
+         for(TH1 *H : HUnfoldedFold1[A])     if(H != nullptr)   H->Write();
+         for(TH1 *H : HRefolded[A])          if(H != nullptr)   H->Write();
+         for(auto I : Covariance[A])         I.second.Write(I.first.c_str());
       }
    }
 
