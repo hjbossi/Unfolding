@@ -645,27 +645,6 @@ TH1D *ForwardFold(TH1 *HGen, TH2D *HResponse)
    return HResult;
 }
 
-TH1D *VaryWithinError(TH1D *H)
-{
-   TRandom3* Random = new TRandom3(0);
-
-   if(H == nullptr)
-      return nullptr;
-
-   TH1D *HVary = (TH1D *)H->Clone("HVary");
-   HVary->Reset();
-
-   int N = HVary->GetNbinsX();
-   for(int i = 1; i <= N; i++)
-   {
-      double Value = Random->Gaus(H->GetBinContent(i), H->GetBinError(i));
-      HVary->SetBinContent(i, Value);
-      HVary->SetBinError(i, H->GetBinError(i));
-   }
-
-   return HVary;
-}
-
 TH1D *Collapse(TH1 *HFlat, vector<double> &BinsPrimary, vector<double> &BinsSecondary, int Axis) 
 {
    int N = BinsPrimary.size() - 1; 
