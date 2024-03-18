@@ -38,7 +38,7 @@ void DoProjection(TH2D *HResponse, TH1D **HGen, TH1D **HReco);
 TH1D *ForwardFold(TH1 *HGen, TH2D *HResponse);
 TH1D *Collapse(TH1 *HFlat, vector<double> &BinsPrimary, vector<double> &BinsSecondary, int Axis);
 TH1D *VaryWithinError(TH1D *H);
-TH1D* GetVariance(vector<vector<TH1 *>> &Asimov, vector<int> &Regularization, vector<TH1 *> &Dists);
+TH1D* GetVariance(vector<vector<TH1 *>> &Asimov, vector<int> &Regularization, vector<TH1 *> &Dists, int Axis = -1);
 
 class Spectrum
 {
@@ -353,8 +353,8 @@ int main(int argc, char *argv[])
       }
 
       Variance = GetVariance(HUnfolded, Iterations, VarianceDists);
-      VarianceFold0 = GetVariance(HUnfoldedFold0, Iterations, VarianceDistsFold0);
-      VarianceFold1 = GetVariance(HUnfoldedFold1, Iterations, VarianceDistsFold1);
+      VarianceFold0 = GetVariance(HUnfoldedFold0, Iterations, VarianceDistsFold0, 0);
+      VarianceFold1 = GetVariance(HUnfoldedFold1, Iterations, VarianceDistsFold1, 1);
    }
 
    // if(DoSVD == true)
@@ -395,6 +395,8 @@ int main(int argc, char *argv[])
    HInputFold0->Clone("HInputFold0")->Write();
    HInputFold1->Clone("HInputFold1")->Write();
    Variance->Clone("HVariance")->Write();
+   VarianceFold0->Clone("VarianceFold0")->Write();
+   VarianceFold1->Clone("VarianceFold1")->Write();
    for(TH1 *H : HAsimov)                     if(H != nullptr)   H->Write();
    for(TH1 *H : VarianceDists)               if(H != nullptr)   H->Write();
    for(TH1 *H : VarianceDistsFold0)          if(H != nullptr)   H->Write();
@@ -734,7 +736,7 @@ TH1D *VaryWithinError(TH1D *H)
    return HVary;
 }
 
-TH1D* GetVariance(vector<vector<TH1 *>> &Asimov, vector<int> &Regularization, vector<TH1 *> &Dists)
+TH1D* GetVariance(vector<vector<TH1 *>> &Asimov, vector<int> &Regularization, vector<TH1 *> &Dists, int Axis)
 {
    int NX = Asimov[0][0]->GetNbinsX();
    int NA = Asimov.size();
@@ -745,7 +747,9 @@ TH1D* GetVariance(vector<vector<TH1 *>> &Asimov, vector<int> &Regularization, ve
    for(int I = 0; I < NI; I++)
    {
       vector<double> BinVariance(NX, 0);
-      Dists.push_back((TH1D *)Asimov[0][0]->Clone(Form("HVarianceDist%d", (int) Regularization[I])));
+      if (Axis == -1) Dists.push_back((TH1D *)Asimov[0][0]->Clone(Form("HVarianceDist%d", (int) Regularization[I])));
+      if (Axis == 0)  Dists.push_back((TH1D *)Asimov[0][0]->Clone(Form("HVarianceDistFold0%d", (int) Regularization[I])));
+      if (Axis == 1)  Dists.push_back((TH1D *)Asimov[0][0]->Clone(Form("HVarianceDistFold1%d", (int) Regularization[I])));
       Dists[I]->Reset();
 
       for(int X = 0; X < NX; X++)
