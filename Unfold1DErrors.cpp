@@ -238,8 +238,8 @@ int main(int argc, char *argv[])
 
    
 
-   TH1D *HInput0 = Collapse(HInput, RecoBinsPrimary, RecoBinsSecondary, 0);
-   TH1D *HInput1 = Collapse(HInput, RecoBinsPrimary, RecoBinsSecondary, 1);
+   TH1D *HInputFold0 = Collapse(HInput, RecoBinsPrimary, RecoBinsSecondary, 0);
+   TH1D *HInputFold1 = Collapse(HInput, RecoBinsPrimary, RecoBinsSecondary, 1);
 
    if(Error == "kNoError") 
    {
@@ -308,11 +308,17 @@ int main(int argc, char *argv[])
    DoProjection(HResponse, &HGen, &HReco);
 
    vector<TH1 *> HAsimov;
-   vector<vector<TH1 *>> HUnfolded(NA, vector<TH1 *>(0));
-   vector<vector<TH1 *>> HRefolded(NA, vector<TH1 *>(0));
    vector<map<string, TMatrixD>> Covariance(NA, map<string, TMatrixD>());
+   vector<vector<TH1 *>> HRefolded(NA, vector<TH1 *>(0));
+   vector<vector<TH1 *>> HUnfolded(NA, vector<TH1 *>(0));
+   vector<vector<TH1 *>> HUnfoldedFold0(NA, vector<TH1 *>(0));
+   vector<vector<TH1 *>> HUnfoldedFold1(NA, vector<TH1 *>(0));
    vector<TH1 *> VarianceDists(0);
+   vector<TH1 *> VarianceDistsFold0(0);
+   vector<TH1 *> VarianceDistsFold1(0);
    TH1D *Variance;
+   TH1D *VarianceFold0;
+   TH1D *VarianceFold1;
 
    RooUnfoldResponse *Response = new RooUnfoldResponse(HReco, HGen, HResponse);
 
@@ -333,7 +339,11 @@ int main(int argc, char *argv[])
             RooUnfoldBayes BayesUnfold(Response, HAsimov[A], I); 
             BayesUnfold.SetNToys(1000);
             BayesUnfold.SetVerbose(-1);
+
             HUnfolded[A].push_back((TH1 *)(BayesUnfold.Hunfold(ErrorChoice)->Clone(Form("Test%dHUnfoldedBayes%d", A, I))));
+            HUnfoldedFold0[A].push_back((TH1 *) Collapse(HUnfolded[A], GenBinsPrimary, GenBinsSecondary, 0)->Clone(Form("Test%dHUnfoldedBayes%dFold0", A, I)));
+            HUnfoldedFold1[A].push_back((TH1 *) Collapse(HUnfolded[A], GenBinsPrimary, GenBinsSecondary, 1)->Clone(Form("Test%dHUnfoldedBayes%dFold1", A, I)));
+            
             Covariance[A].insert(pair<string, TMatrixD>(Form("Test%dMUnfoldedBayes%d", A, I), BayesUnfold.Eunfold()));
             TH1D *HFold = ForwardFold(HUnfolded[A][HUnfolded[A].size()-1], HResponse);
             HFold->SetName(Form("Test%dHRefoldedBayes%d", A, I));
@@ -342,28 +352,37 @@ int main(int argc, char *argv[])
       }
 
       Variance = GetVariance(HUnfolded, Iterations, VarianceDists);
+      VarianceFold0 = GetVariance(HUnfoldedFold0, Iterations, VarianceDistsFold0);
+      VarianceFold1 = GetVariance(HUnfoldedFold1, Iterations, VarianceDistsFold1);
    }
 
    // if(DoSVD == true)
    // {
    //    vector<int> SVDRegularization{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65};
 
-   //    for(int D : SVDRegularization)
+   //    for(int A = 0; A < NA; A++) 
    //    {
-   //       if(D >= HGen->GetNbinsX())
-   //          continue;
+   //       cout << A << endl;
 
-   //       cout << D << endl;
+   //       for(int D : SVDRegularization)
+   //       {
+   //          if(D >= HGen->GetNbinsX())
+   //             continue;
 
-   //       RooUnfoldSvd SVDUnfold(Response, HInput, D);
-   //       SVDUnfold.SetNToys(1000);
-   //       SVDUnfold.SetVerbose(-1);
-   //       HUnfolded.push_back((TH1 *)(SVDUnfold.Hunfold(ErrorChoice)->Clone(Form("HUnfoldedSVD%d", D))));
-   //       Covariance.insert(pair<string, TMatrixD>(Form("MUnfoldedSVD%d", D), SVDUnfold.Eunfold()));
-   //       TH1D *HFold = ForwardFold(HUnfolded[HUnfolded.size()-1], HResponse);
-   //       HFold->SetName(Form("HRefoldedSVD%d", D));
-   //       HRefolded.push_back(HFold);
+   //          RooUnfoldSvd SVDUnfold(Response, HAsimov[A], D); 
+   //          SVDUnfold.SetNToys(1000);
+   //          SVDUnfold.SetVerbose(-1);
+   //          HUnfolded[A].push_back((TH1 *)(SVDUnfold.Hunfold(ErrorChoice)->Clone(Form("Test%dHUnfoldedSVD%d", A, D))));
+   //          Covariance[A].insert(pair<string, TMatrixD>(Form("Test%dMUnfoldedSVD%d", A, D), SVDUnfold.Eunfold()));
+   //          TH1D *HFold = ForwardFold(HUnfolded[A][HUnfolded[A].size()-1], HResponse);
+   //          HFold->SetName(Form("Test%dHRefoldedSVD%d", A, D));
+   //          HRefolded[A].push_back(HFold);
+   //       }
    //    }
+
+   //    Variance = GetVariance(HUnfolded, SVDRegularization, VarianceDists);
+   //    Bias = GetBias(HUnfolded, HInputGen, SVDRegularization, BiasDists);
+   //    MSE = GetMSE(Variance, Bias);
    // }
 
    TFile OutputFile(Output.c_str(), "RECREATE");
@@ -372,8 +391,8 @@ int main(int argc, char *argv[])
    HResponse->Clone("HMCResponse")->Write();
    Response->Mresponse().Clone("HMCFilledResponse")->Write();
    HInput->Clone("HInput")->Write();
-   HInput0->Clone("HInput0")->Write();
-   HInput1->Clone("HInput1")->Write();
+   HInputFold0->Clone("HInputFold0")->Write();
+   HInputFold1->Clone("HInputFold1")->Write();
    Variance->Clone("HVariance")->Write();
    for(TH1 *H : HAsimov)         if(H != nullptr)   H->Write();
    for(TH1 *H : VarianceDists)   if(H != nullptr)   H->Write();
