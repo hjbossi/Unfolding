@@ -385,9 +385,9 @@ int main(int argc, char *argv[])
          }
       }
 
-      Error = GetError(HUnfolded, Iterations, ErrorDists);
-      ErrorFold0 = GetError(HUnfoldedFold0, Iterations, ErrorDistsFold0, 0);
-      ErrorFold1 = GetError(HUnfoldedFold1, Iterations, ErrorDistsFold1, 1);
+      Error = GetError(HUnfolded, SVDRegularization, ErrorDists);
+      ErrorFold0 = GetError(HUnfoldedFold0, SVDRegularization, ErrorDistsFold0, 0);
+      ErrorFold1 = GetError(HUnfoldedFold1, SVDRegularization, ErrorDistsFold1, 1);
    }
 
    TFile OutputFile(Output.c_str(), "RECREATE");
