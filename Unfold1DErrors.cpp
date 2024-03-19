@@ -217,7 +217,7 @@ int main(int argc, char *argv[])
 
    int NGen = HResponse->GetNbinsY();
    int NReco = HResponse->GetNbinsX();
-   int NA = 50;
+   int NA = 500;
 
    RemoveOutOfRange(HMeasured);
    RemoveOutOfRange(HTruth);
@@ -328,8 +328,7 @@ int main(int argc, char *argv[])
 
    if(DoBayes == true)
    {
-      // vector<int> Iterations{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 105, 110, 115, 120, 125, 130, 135, 140, 145, 150};
-      vector<int> Iterations{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20, 25, 30, 40, 60, 80, 100, 150};
+      vector<int> Iterations{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 105, 110, 115, 120, 125, 130, 135, 140, 145, 150};
 
       for(int A = 0; A < NA; A++) 
       {
@@ -401,7 +400,7 @@ int main(int argc, char *argv[])
    HError->Clone("HError")->Write();
    HErrorFold0->Clone("HErrorFold0")->Write();
    HErrorFold1->Clone("HErrorFold1")->Write();
-   for(TH1 *H : HAsimov)                     if(H != nullptr)   H->Write();
+   // for(TH1 *H : HAsimov)                     if(H != nullptr)   H->Write();
    for(TH1 *H : HErrorDists)               if(H != nullptr)   H->Write();
    for(TH1 *H : HErrorDistsFold0)          if(H != nullptr)   H->Write();
    for(TH1 *H : HErrorDistsFold1)          if(H != nullptr)   H->Write();
