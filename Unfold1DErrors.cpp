@@ -38,7 +38,7 @@ void DoProjection(TH2D *HResponse, TH1D **HGen, TH1D **HReco);
 TH1D *ForwardFold(TH1 *HGen, TH2D *HResponse);
 TH1D *Collapse(TH1 *HFlat, vector<double> &BinsPrimary, vector<double> &BinsSecondary, int Axis);
 TH1D *VaryWithinError(TH1D *H);
-TH1D* GetVariance(vector<vector<TH1 *>> &Asimov, vector<int> &Regularization, vector<TH1 *> &Dists, int Axis = -1);
+TH1D* GetError(vector<vector<TH1 *>> &Asimov, vector<int> &Regularization, vector<TH1 *> &Dists, int Axis = -1);
 
 class Spectrum
 {
@@ -313,12 +313,12 @@ int main(int argc, char *argv[])
    vector<vector<TH1 *>> HUnfolded(NA, vector<TH1 *>(0));
    vector<vector<TH1 *>> HUnfoldedFold0(NA, vector<TH1 *>(0));
    vector<vector<TH1 *>> HUnfoldedFold1(NA, vector<TH1 *>(0));
-   vector<TH1 *> VarianceDists(0);
-   vector<TH1 *> VarianceDistsFold0(0);
-   vector<TH1 *> VarianceDistsFold1(0);
-   TH1D *Variance;
-   TH1D *VarianceFold0;
-   TH1D *VarianceFold1;
+   vector<TH1 *> ErrorDists(0);
+   vector<TH1 *> ErrorDistsFold0(0);
+   vector<TH1 *> ErrorDistsFold1(0);
+   TH1D *Error;
+   TH1D *ErrorFold0;
+   TH1D *ErrorFold1;
 
    RooUnfoldResponse *Response = new RooUnfoldResponse(HReco, HGen, HResponse);
 
@@ -352,39 +352,43 @@ int main(int argc, char *argv[])
          }
       }
 
-      Variance = GetVariance(HUnfolded, Iterations, VarianceDists);
-      VarianceFold0 = GetVariance(HUnfoldedFold0, Iterations, VarianceDistsFold0, 0);
-      VarianceFold1 = GetVariance(HUnfoldedFold1, Iterations, VarianceDistsFold1, 1);
+      Error = GetError(HUnfolded, Iterations, ErrorDists);
+      ErrorFold0 = GetError(HUnfoldedFold0, Iterations, ErrorDistsFold0, 0);
+      ErrorFold1 = GetError(HUnfoldedFold1, Iterations, ErrorDistsFold1, 1);
    }
 
-   // if(DoSVD == true)
-   // {
-   //    vector<int> SVDRegularization{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65};
+   if(DoSVD == true)
+   {
+      vector<int> SVDRegularization{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65};
 
-   //    for(int A = 0; A < NA; A++) 
-   //    {
-   //       cout << A << endl;
+      for(int A = 0; A < NA; A++) 
+      {
+         cout << A << endl;
 
-   //       for(int D : SVDRegularization)
-   //       {
-   //          if(D >= HGen->GetNbinsX())
-   //             continue;
+         for(int D : SVDRegularization)
+         {
+            if(D >= HGen->GetNbinsX())
+               continue;
 
-   //          RooUnfoldSvd SVDUnfold(Response, HAsimov[A], D); 
-   //          SVDUnfold.SetNToys(1000);
-   //          SVDUnfold.SetVerbose(-1);
-   //          HUnfolded[A].push_back((TH1 *)(SVDUnfold.Hunfold(ErrorChoice)->Clone(Form("Test%dHUnfoldedSVD%d", A, D))));
-   //          Covariance[A].insert(pair<string, TMatrixD>(Form("Test%dMUnfoldedSVD%d", A, D), SVDUnfold.Eunfold()));
-   //          TH1D *HFold = ForwardFold(HUnfolded[A][HUnfolded[A].size()-1], HResponse);
-   //          HFold->SetName(Form("Test%dHRefoldedSVD%d", A, D));
-   //          HRefolded[A].push_back(HFold);
-   //       }
-   //    }
+            RooUnfoldSvd SVDUnfold(Response, HAsimov[A], D); 
+            SVDUnfold.SetNToys(1000);
+            SVDUnfold.SetVerbose(-1);
 
-   //    Variance = GetVariance(HUnfolded, SVDRegularization, VarianceDists);
-   //    Bias = GetBias(HUnfolded, HInputGen, SVDRegularization, BiasDists);
-   //    MSE = GetMSE(Variance, Bias);
-   // }
+            HUnfolded[A].push_back((TH1 *)(SVDUnfold.Hunfold(ErrorChoice)->Clone(Form("Test%dHUnfoldedSVD%d", A, D))));
+            HUnfoldedFold0[A].push_back((TH1 *) Collapse(HUnfolded[A].back(), GenBinsPrimary, GenBinsSecondary, 0)->Clone(Form("Test%dHUnfoldedSVD%dFold0", A, D)));
+            HUnfoldedFold1[A].push_back((TH1 *) Collapse(HUnfolded[A].back(), GenBinsPrimary, GenBinsSecondary, 1)->Clone(Form("Test%dHUnfoldedSVD%dFold1", A, D)));
+
+            Covariance[A].insert(pair<string, TMatrixD>(Form("Test%dMUnfoldedSVD%d", A, D), SVDUnfold.Eunfold()));
+            TH1D *HFold = ForwardFold(HUnfolded[A][HUnfolded[A].size()-1], HResponse);
+            HFold->SetName(Form("Test%dHRefoldedSVD%d", A, D));
+            HRefolded[A].push_back(HFold);
+         }
+      }
+
+      Error = GetError(HUnfolded, Iterations, ErrorDists);
+      ErrorFold0 = GetError(HUnfoldedFold0, Iterations, ErrorDistsFold0, 0);
+      ErrorFold1 = GetError(HUnfoldedFold1, Iterations, ErrorDistsFold1, 1);
+   }
 
    TFile OutputFile(Output.c_str(), "RECREATE");
    HMeasured->Clone("HMCMeasured")->Write();
@@ -394,13 +398,13 @@ int main(int argc, char *argv[])
    HInput->Clone("HInput")->Write();
    HInputFold0->Clone("HInputFold0")->Write();
    HInputFold1->Clone("HInputFold1")->Write();
-   Variance->Clone("HVariance")->Write();
-   VarianceFold0->Clone("VarianceFold0")->Write();
-   VarianceFold1->Clone("VarianceFold1")->Write();
+   Error->Clone("HError")->Write();
+   ErrorFold0->Clone("HErrorFold0")->Write();
+   ErrorFold1->Clone("HErrorFold1")->Write();
    for(TH1 *H : HAsimov)                     if(H != nullptr)   H->Write();
-   for(TH1 *H : VarianceDists)               if(H != nullptr)   H->Write();
-   for(TH1 *H : VarianceDistsFold0)          if(H != nullptr)   H->Write();
-   for(TH1 *H : VarianceDistsFold1)          if(H != nullptr)   H->Write();
+   for(TH1 *H : ErrorDists)               if(H != nullptr)   H->Write();
+   for(TH1 *H : ErrorDistsFold0)          if(H != nullptr)   H->Write();
+   for(TH1 *H : ErrorDistsFold1)          if(H != nullptr)   H->Write();
    for(int A = 0; A < NA; A++) {
       if (A == 0) {
          for(TH1 *H : HUnfolded[A])          if(H != nullptr)   H->Write();
@@ -736,20 +740,20 @@ TH1D *VaryWithinError(TH1D *H)
    return HVary;
 }
 
-TH1D* GetVariance(vector<vector<TH1 *>> &Asimov, vector<int> &Regularization, vector<TH1 *> &Dists, int Axis)
+TH1D* GetError(vector<vector<TH1 *>> &Asimov, vector<int> &Regularization, vector<TH1 *> &Dists, int Axis)
 {
    int NX = Asimov[0][0]->GetNbinsX();
    int NA = Asimov.size();
    int NI = Regularization.size();
 
-   TH1D *Variance = new TH1D("HVariance", "", Regularization.back(), 0, Regularization.back());
+   TH1D *Error = new TH1D("HError", "", Regularization.back(), 0, Regularization.back());
 
    for(int I = 0; I < NI; I++)
    {
-      vector<double> BinVariance(NX, 0);
-      if (Axis == -1) Dists.push_back((TH1D *)Asimov[0][0]->Clone(Form("HVarianceDist%d", (int) Regularization[I])));
-      if (Axis == 0)  Dists.push_back((TH1D *)Asimov[0][0]->Clone(Form("HVarianceDistFold0%d", (int) Regularization[I])));
-      if (Axis == 1)  Dists.push_back((TH1D *)Asimov[0][0]->Clone(Form("HVarianceDistFold1%d", (int) Regularization[I])));
+      vector<double> BinError(NX, 0);
+      if (Axis == -1) Dists.push_back((TH1D *)Asimov[0][0]->Clone(Form("HErrorDist%d", (int) Regularization[I])));
+      if (Axis == 0)  Dists.push_back((TH1D *)Asimov[0][0]->Clone(Form("HErrorDist%dFold0", (int) Regularization[I])));
+      if (Axis == 1)  Dists.push_back((TH1D *)Asimov[0][0]->Clone(Form("HErrorDist%dFold1", (int) Regularization[I])));
       Dists[I]->Reset();
 
       for(int X = 0; X < NX; X++)
@@ -765,17 +769,17 @@ TH1D* GetVariance(vector<vector<TH1 *>> &Asimov, vector<int> &Regularization, ve
          for(int A = 0; A < NA; A++) Variance += TMath::Power(Asimov[A][I]->GetBinContent(X + 1) - Mean, 2);
 
          Variance /= NA > 1 ? (NA - 1) : NA;
+         double Error = sqrt(Variance);
 
-         BinVariance[X] = Variance;
-         Dists[I]->SetBinContent(X + 1, Variance);
+         BinError[X] = Error;
+         Dists[I]->SetBinContent(X + 1, Error);
       }
 
-      double BinMeanVariance = 0;
-      for (auto V : BinVariance) BinMeanVariance += V/NX;
-      for (auto V : BinVariance) cout << V << " "; cout << endl;
+      double BinMeanError = 0;
+      for (auto E : BinError) BinMeanError += E/NX;
 
-      Variance->SetBinContent(Regularization[I], BinMeanVariance);
+      Error->SetBinContent(Regularization[I], BinMeanError);
    }
 
-   return Variance;
+   return Error;
 }

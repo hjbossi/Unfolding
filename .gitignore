@@ -1,6 +1,6 @@
-log/**
 Unfold1DScaled.cpp
-Theory/**
+FitAllTest.sh
+RooUnfold/
 RooUnfold/**
 *.DS_Store
 *.root
