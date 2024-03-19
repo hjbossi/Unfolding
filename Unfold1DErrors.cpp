@@ -313,12 +313,12 @@ int main(int argc, char *argv[])
    vector<vector<TH1 *>> HUnfolded(NA, vector<TH1 *>(0));
    vector<vector<TH1 *>> HUnfoldedFold0(NA, vector<TH1 *>(0));
    vector<vector<TH1 *>> HUnfoldedFold1(NA, vector<TH1 *>(0));
-   vector<TH1 *> ErrorDists(0);
-   vector<TH1 *> ErrorDistsFold0(0);
-   vector<TH1 *> ErrorDistsFold1(0);
-   TH1D *Error;
-   TH1D *ErrorFold0;
-   TH1D *ErrorFold1;
+   vector<TH1 *> HErrorDists(0);
+   vector<TH1 *> HErrorDistsFold0(0);
+   vector<TH1 *> HErrorDistsFold1(0);
+   TH1D *HError;
+   TH1D *HErrorFold0;
+   TH1D *HErrorFold1;
 
    RooUnfoldResponse *Response = new RooUnfoldResponse(HReco, HGen, HResponse);
 
@@ -352,9 +352,9 @@ int main(int argc, char *argv[])
          }
       }
 
-      Error = GetError(HUnfolded, Iterations, ErrorDists);
-      ErrorFold0 = GetError(HUnfoldedFold0, Iterations, ErrorDistsFold0, 0);
-      ErrorFold1 = GetError(HUnfoldedFold1, Iterations, ErrorDistsFold1, 1);
+      HError = GetError(HUnfolded, Iterations, HErrorDists);
+      HErrorFold0 = GetError(HUnfoldedFold0, Iterations, HErrorDistsFold0, 0);
+      HErrorFold1 = GetError(HUnfoldedFold1, Iterations, HErrorDistsFold1, 1);
    }
 
    if(DoSVD == true)
@@ -385,9 +385,9 @@ int main(int argc, char *argv[])
          }
       }
 
-      Error = GetError(HUnfolded, SVDRegularization, ErrorDists);
-      ErrorFold0 = GetError(HUnfoldedFold0, SVDRegularization, ErrorDistsFold0, 0);
-      ErrorFold1 = GetError(HUnfoldedFold1, SVDRegularization, ErrorDistsFold1, 1);
+      HError = GetError(HUnfolded, SVDRegularization, HErrorDists);
+      HErrorFold0 = GetError(HUnfoldedFold0, SVDRegularization, HErrorDistsFold0, 0);
+      HErrorFold1 = GetError(HUnfoldedFold1, SVDRegularization, HErrorDistsFold1, 1);
    }
 
    TFile OutputFile(Output.c_str(), "RECREATE");
@@ -398,13 +398,13 @@ int main(int argc, char *argv[])
    HInput->Clone("HInput")->Write();
    HInputFold0->Clone("HInputFold0")->Write();
    HInputFold1->Clone("HInputFold1")->Write();
-   Error->Clone("HError")->Write();
-   ErrorFold0->Clone("HErrorFold0")->Write();
-   ErrorFold1->Clone("HErrorFold1")->Write();
+   HError->Clone("HError")->Write();
+   HErrorFold0->Clone("HErrorFold0")->Write();
+   HErrorFold1->Clone("HErrorFold1")->Write();
    for(TH1 *H : HAsimov)                     if(H != nullptr)   H->Write();
-   for(TH1 *H : ErrorDists)               if(H != nullptr)   H->Write();
-   for(TH1 *H : ErrorDistsFold0)          if(H != nullptr)   H->Write();
-   for(TH1 *H : ErrorDistsFold1)          if(H != nullptr)   H->Write();
+   for(TH1 *H : HErrorDists)               if(H != nullptr)   H->Write();
+   for(TH1 *H : HErrorDistsFold0)          if(H != nullptr)   H->Write();
+   for(TH1 *H : HErrorDistsFold1)          if(H != nullptr)   H->Write();
    for(int A = 0; A < NA; A++) {
       if (A == 0) {
          for(TH1 *H : HUnfolded[A])          if(H != nullptr)   H->Write();
