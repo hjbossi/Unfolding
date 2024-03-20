@@ -217,7 +217,7 @@ int main(int argc, char *argv[])
 
    int NGen = HResponse->GetNbinsY();
    int NReco = HResponse->GetNbinsX();
-   int NA = 500;
+   int NA = 100;
 
    RemoveOutOfRange(HMeasured);
    RemoveOutOfRange(HTruth);
