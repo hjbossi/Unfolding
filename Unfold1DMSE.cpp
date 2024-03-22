@@ -385,8 +385,8 @@ int main(int argc, char *argv[])
    Bias->Clone("HBias")->Write();
    MSE->Clone("HMSE")->Write();
    for(TH1 *H : HAsimov)       if(H != nullptr)   H->Write();
-   // for(TH1 *H : VarianceDists)       if(H != nullptr)   H->Write();
-   // for(TH1 *H : BiasDists)       if(H != nullptr)   H->Write();
+   for(TH1 *H : VarianceDists)       if(H != nullptr)   H->Write();
+   for(TH1 *H : BiasDists)       if(H != nullptr)   H->Write();
    for(int A = 0; A < NA; A++) {
       if (A == 0) {
          for(TH1 *H : HUnfolded[A])     if(H != nullptr)   H->Write();

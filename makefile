@@ -39,6 +39,11 @@ ExecuteErrors: Unfold1DErrors.cpp
 		-I/home/submit/mitay/physics/PhotonJet2018/Unfolding/Unfolding/RooUnfold/src -L/home/submit/mitay/physics/PhotonJet2018/Unfolding/Unfolding/RooUnfold/ -lRooUnfold \
 		`root-config --cflags --glibs`
 
+ExecuteErrorsLight: Unfold1DErrorsLight.cpp
+	g++ Unfold1DErrorsLight.cpp -o ExecuteErrorsLight \
+		-I/home/submit/mitay/physics/PhotonJet2018/Unfolding/Unfolding/RooUnfold/src -L/home/submit/mitay/physics/PhotonJet2018/Unfolding/Unfolding/RooUnfold/ -lRooUnfold \
+		`root-config --cflags --glibs`
+
 # If you use the CMake version
 # Execute: Unfold1D.cpp
 #	g++ Unfold1D.cpp -o Execute \
@@ -55,4 +60,4 @@ ExecuteErrors: Unfold1DErrors.cpp
 #		-I/Users/Molly/Desktop/Unfolding/RooUnfold/build/ -L/Users/Molly/Desktop/Unfolding/RooUnfold/build/ -lRooUnfold \
 #		`root-config --cflags --glibs`
 
-RunTest: Execute ExecuteMSE ExecuteMSELight ExecuteErrors
+RunTest: Execute ExecuteMSE ExecuteMSELight ExecuteErrors ExecuteErrorsLight
