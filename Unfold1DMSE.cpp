@@ -39,10 +39,10 @@ void DoProjection(TH2D *HResponse, TH1D **HGen, TH1D **HReco);
 TH1D *ForwardFold(TH1 *HGen, TH2D *HResponse, TH1 *HErrors = nullptr);
 TH1D *Collapse(TH1 *HFlat, vector<double> &BinsPrimary, vector<double> &BinsSecondary, int Axis);
 TH1D *VaryWithinError(TH1D *H);
-TH1D* GetVariance(vector<vector<TH1 *>> &Asimov, vector<int> &Regularization, vector<TH1 *> &Dists);
-TH1D* GetBias(vector<vector<TH1 *>> &Asimov, TH1* HTruth, vector<int> &Regularization, vector<TH1 *> &Dists);
-TH1D* GetMSE(TH1* Variance, TH1* Bias);
-TH1D* GetCoverage(vector<TH1 *> &VarianceDists, vector<TH1 *> &BiasDists, vector<TH1 *> &CoverageDists, vector<int> &Regularization);
+TH1D* GetVariance(vector<vector<TH1 *>> &Asimov, vector<int> &Regularization, vector<TH1 *> &Dists, int Axis = -1);
+TH1D* GetBias(vector<vector<TH1 *>> &Asimov, TH1* HTruth, vector<int> &Regularization, vector<TH1 *> &Dists, int Axis = -1);
+TH1D* GetMSE(TH1* Variance, TH1* Bias, int Axis = -1);
+TH1D* GetCoverage(vector<TH1 *> &VarianceDists, vector<TH1 *> &BiasDists, vector<TH1 *> &CoverageDists, vector<int> &Regularization, int Axis = -1);
 
 class Spectrum
 {
@@ -388,20 +388,20 @@ int main(int argc, char *argv[])
       }
 
       Variance = GetVariance(HUnfolded, Iterations, VarianceDists);
-      VarianceFold0 = GetVariance(HUnfoldedFold0, Iterations, VarianceDistsFold0);
-      VarianceFold1 = GetVariance(HUnfoldedFold1, Iterations, VarianceDistsFold1);
+      VarianceFold0 = GetVariance(HUnfoldedFold0, Iterations, VarianceDistsFold0, 0);
+      VarianceFold1 = GetVariance(HUnfoldedFold1, Iterations, VarianceDistsFold1, 1);
 
       Bias = GetBias(HUnfolded, HInputGen, Iterations, BiasDists);
-      BiasFold0 = GetBias(HUnfoldedFold0, HInputGenFold0, Iterations, BiasDistsFold0);
-      BiasFold1 = GetBias(HUnfoldedFold1, HInputGenFold1, Iterations, BiasDistsFold1);
+      BiasFold0 = GetBias(HUnfoldedFold0, HInputGenFold0, Iterations, BiasDistsFold0, 0);
+      BiasFold1 = GetBias(HUnfoldedFold1, HInputGenFold1, Iterations, BiasDistsFold1, 1);
       
       MSE = GetMSE(Variance, Bias);
       MSEFold0 = GetMSE(VarianceFold0, BiasFold0);
       MSEFold1 = GetMSE(VarianceFold1, BiasFold1);
 
       Coverage = GetCoverage(VarianceDists, BiasDists, CoverageDists, Iterations);
-      CoverageFold0 = GetCoverage(VarianceDistsFold0, BiasDistsFold0, CoverageDistsFold0, Iterations);
-      CoverageFold1 = GetCoverage(VarianceDistsFold1, BiasDistsFold1, CoverageDistsFold1, Iterations);
+      CoverageFold0 = GetCoverage(VarianceDistsFold0, BiasDistsFold0, CoverageDistsFold0, Iterations, 0);
+      CoverageFold1 = GetCoverage(VarianceDistsFold1, BiasDistsFold1, CoverageDistsFold1, Iterations, 1);
    }
 
    if(DoSVD == true)
@@ -432,20 +432,20 @@ int main(int argc, char *argv[])
       }
 
       Variance = GetVariance(HUnfolded, SVDRegularization, VarianceDists);
-      VarianceFold0 = GetVariance(HUnfoldedFold0, SVDRegularization, VarianceDistsFold0);
-      VarianceFold1 = GetVariance(HUnfoldedFold1, SVDRegularization, VarianceDistsFold1);
+      VarianceFold0 = GetVariance(HUnfoldedFold0, SVDRegularization, VarianceDistsFold0, 0);
+      VarianceFold1 = GetVariance(HUnfoldedFold1, SVDRegularization, VarianceDistsFold1, 1);
 
       Bias = GetBias(HUnfolded, HInputGen, SVDRegularization, BiasDists);
-      BiasFold0 = GetBias(HUnfoldedFold0, HInputGenFold0, SVDRegularization, BiasDistsFold0);
-      BiasFold1 = GetBias(HUnfoldedFold1, HInputGenFold1, SVDRegularization, BiasDistsFold1);
+      BiasFold0 = GetBias(HUnfoldedFold0, HInputGenFold0, SVDRegularization, BiasDistsFold0, 0);
+      BiasFold1 = GetBias(HUnfoldedFold1, HInputGenFold1, SVDRegularization, BiasDistsFold1, 1);
       
       MSE = GetMSE(Variance, Bias);
       MSEFold0 = GetMSE(VarianceFold0, BiasFold0);
       MSEFold1 = GetMSE(VarianceFold1, BiasFold1);
 
       Coverage = GetCoverage(VarianceDists, BiasDists, CoverageDists, SVDRegularization);
-      CoverageFold0 = GetCoverage(VarianceDistsFold0, BiasDistsFold0, CoverageDistsFold0, SVDRegularization);
-      CoverageFold1 = GetCoverage(VarianceDistsFold1, BiasDistsFold1, CoverageDistsFold1, SVDRegularization);
+      CoverageFold0 = GetCoverage(VarianceDistsFold0, BiasDistsFold0, CoverageDistsFold0, SVDRegularization, 0);
+      CoverageFold1 = GetCoverage(VarianceDistsFold1, BiasDistsFold1, CoverageDistsFold1, SVDRegularization, 1);
    }
 
    TFile OutputFile(Output.c_str(), "RECREATE");
@@ -767,7 +767,7 @@ TH1D *VaryWithinError(TH1D *H)
    return HVary;
 }
 
-TH1D* GetVariance(vector<vector<TH1 *>> &Asimov, vector<int> &Regularization, vector<TH1 *> &Dists)
+TH1D* GetVariance(vector<vector<TH1 *>> &Asimov, vector<int> &Regularization, vector<TH1 *> &Dists, int Axis)
 {
    int NX = Asimov[0][0]->GetNbinsX();
    int NA = Asimov.size();
@@ -778,7 +778,9 @@ TH1D* GetVariance(vector<vector<TH1 *>> &Asimov, vector<int> &Regularization, ve
    for(int I = 0; I < NI; I++)
    {
       vector<double> BinVariance(NX, 0);
-      Dists.push_back((TH1D *)Asimov[0][0]->Clone(Form("HVarianceDist%d", (int) Regularization[I])));
+      if (Axis == -1) Dists.push_back((TH1D *)Asimov[0][0]->Clone(Form("HVarianceDist%d", (int) Regularization[I])));
+      if (Axis == 0)  Dists.push_back((TH1D *)Asimov[0][0]->Clone(Form("HVarianceDist%dFold0", (int) Regularization[I])));
+      if (Axis == 1)  Dists.push_back((TH1D *)Asimov[0][0]->Clone(Form("HVarianceDist%dFold1", (int) Regularization[I])));
       Dists[I]->Reset();
 
       for(int X = 0; X < NX; X++)
@@ -808,7 +810,7 @@ TH1D* GetVariance(vector<vector<TH1 *>> &Asimov, vector<int> &Regularization, ve
    return Variance;
 }
 
-TH1D* GetBias(vector<vector<TH1 *>> &Asimov, TH1* HTruth, vector<int> &Regularization, vector<TH1 *> &Dists)
+TH1D* GetBias(vector<vector<TH1 *>> &Asimov, TH1* HTruth, vector<int> &Regularization, vector<TH1 *> &Dists, int Axis)
 {
    int NX = Asimov[0][0]->GetNbinsX();
    int NA = Asimov.size();
@@ -819,7 +821,9 @@ TH1D* GetBias(vector<vector<TH1 *>> &Asimov, TH1* HTruth, vector<int> &Regulariz
    for(int I = 0; I < NI; I++)
    {
       vector<double> BinBias(NX, 0);
-      Dists.push_back((TH1D *)Asimov[0][0]->Clone(Form("HBiasDist%d", (int) Regularization[I])));
+      if (Axis == -1) Dists.push_back((TH1D *)Asimov[0][0]->Clone(Form("HBiasDist%d", (int) Regularization[I])));
+      if (Axis == 0)  Dists.push_back((TH1D *)Asimov[0][0]->Clone(Form("HBiasDist%dFold0", (int) Regularization[I])));
+      if (Axis == 1)  Dists.push_back((TH1D *)Asimov[0][0]->Clone(Form("HBiasDist%dFold1", (int) Regularization[I])));
       Dists[I]->Reset();
 
       for(int X = 0; X < NX; X++)
@@ -845,14 +849,14 @@ TH1D* GetBias(vector<vector<TH1 *>> &Asimov, TH1* HTruth, vector<int> &Regulariz
    return Bias;
 }
 
-TH1D* GetMSE(TH1* Variance, TH1* Bias)
+TH1D* GetMSE(TH1* Variance, TH1* Bias, int Axis)
 {
    TH1D *MSE = (TH1D *)Variance->Clone("HMSE");
    MSE->Add(Bias);
    return MSE;
 }
 
-TH1D* GetCoverage(vector<TH1 *> &VarianceDists, vector<TH1 *> &BiasDists, vector<TH1 *> &CoverageDists, vector<int> &Regularization)
+TH1D* GetCoverage(vector<TH1 *> &VarianceDists, vector<TH1 *> &BiasDists, vector<TH1 *> &CoverageDists, vector<int> &Regularization, int Axis)
 {
    int NX = VarianceDists[0]->GetNbinsX();
    int NI = Regularization.size();
@@ -862,7 +866,9 @@ TH1D* GetCoverage(vector<TH1 *> &VarianceDists, vector<TH1 *> &BiasDists, vector
    for(int I = 0; I < NI; I++)
    {
       vector<double> BinCoverage(NX, 0);
-      CoverageDists.push_back((TH1D *)BiasDists[0]->Clone(Form("HCoverageDist%d", (int) Regularization[I])));
+      if (Axis == -1) CoverageDists.push_back((TH1D *)Asimov[0][0]->Clone(Form("HCoverageDist%d", (int) Regularization[I])));
+      if (Axis == 0)  CoverageDists.push_back((TH1D *)Asimov[0][0]->Clone(Form("HCoverageDist%dFold0", (int) Regularization[I])));
+      if (Axis == 1)  CoverageDists.push_back((TH1D *)Asimov[0][0]->Clone(Form("HCoverageDist%dFold1", (int) Regularization[I])));
       CoverageDists[I]->Reset();
 
       for(int X = 0; X < NX; X++)
