@@ -866,9 +866,9 @@ TH1D* GetCoverage(vector<TH1 *> &VarianceDists, vector<TH1 *> &BiasDists, vector
    for(int I = 0; I < NI; I++)
    {
       vector<double> BinCoverage(NX, 0);
-      if (Axis == -1) CoverageDists.push_back((TH1D *)Asimov[0][0]->Clone(Form("HCoverageDist%d", (int) Regularization[I])));
-      if (Axis == 0)  CoverageDists.push_back((TH1D *)Asimov[0][0]->Clone(Form("HCoverageDist%dFold0", (int) Regularization[I])));
-      if (Axis == 1)  CoverageDists.push_back((TH1D *)Asimov[0][0]->Clone(Form("HCoverageDist%dFold1", (int) Regularization[I])));
+      if (Axis == -1) CoverageDists.push_back((TH1D *)BiasDists[0]->Clone(Form("HCoverageDist%d", (int) Regularization[I])));
+      if (Axis == 0)  CoverageDists.push_back((TH1D *)BiasDists[0]->Clone(Form("HCoverageDist%dFold0", (int) Regularization[I])));
+      if (Axis == 1)  CoverageDists.push_back((TH1D *)BiasDists[0]->Clone(Form("HCoverageDist%dFold1", (int) Regularization[I])));
       CoverageDists[I]->Reset();
 
       for(int X = 0; X < NX; X++)
