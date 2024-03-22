@@ -310,8 +310,10 @@ int main(int argc, char *argv[])
    TH1D *Variance;
    TH1D *Bias;
    TH1D *MSE;
+   TH1D *Coverage;
    vector<TH1 *> VarianceDists(0);
    vector<TH1 *> BiasDists(0);
+   vector<TH1 *> CoverageDists(0);
 
    RooUnfoldResponse *Response = new RooUnfoldResponse(HReco, HGen, HResponse);
 
@@ -343,6 +345,7 @@ int main(int argc, char *argv[])
       Variance = GetVariance(HUnfolded, Iterations, VarianceDists);
       Bias = GetBias(HUnfolded, HInputGen, Iterations, BiasDists);
       MSE = GetMSE(Variance, Bias);
+      Coverage = GetCoverage(VarianceDists, BiasDists, CoverageDists);
    }
 
    if(DoSVD == true)
@@ -372,6 +375,7 @@ int main(int argc, char *argv[])
       Variance = GetVariance(HUnfolded, SVDRegularization, VarianceDists);
       Bias = GetBias(HUnfolded, HInputGen, SVDRegularization, BiasDists);
       MSE = GetMSE(Variance, Bias);
+      Coverage = GetCoverage(VarianceDists, BiasDists, CoverageDists);
    }
 
    TFile OutputFile(Output.c_str(), "RECREATE");
@@ -384,9 +388,11 @@ int main(int argc, char *argv[])
    Variance->Clone("HVariance")->Write();
    Bias->Clone("HBias")->Write();
    MSE->Clone("HMSE")->Write();
-   for(TH1 *H : HAsimov)       if(H != nullptr)   H->Write();
-   for(TH1 *H : VarianceDists)       if(H != nullptr)   H->Write();
+   Coverage->Clone("HCoverage")->Write();
+   for(TH1 *H : HAsimov)         if(H != nullptr)   H->Write();
+   for(TH1 *H : VarianceDists)   if(H != nullptr)   H->Write();
    for(TH1 *H : BiasDists)       if(H != nullptr)   H->Write();
+   for(TH1 *H : CoverageDists)   if(H != nullptr)   H->Write();
    for(int A = 0; A < NA; A++) {
       if (A == 0) {
          for(TH1 *H : HUnfolded[A])     if(H != nullptr)   H->Write();
@@ -703,7 +709,6 @@ TH1D* GetVariance(vector<vector<TH1 *>> &Asimov, vector<int> &Regularization, ve
 
       double BinMeanVariance = 0;
       for (auto V : BinVariance) BinMeanVariance += V/NX;
-      for (auto V : BinVariance) cout << V << " "; cout << endl;
 
       Variance->SetBinContent(Regularization[I], BinMeanVariance);
    }
@@ -741,7 +746,6 @@ TH1D* GetBias(vector<vector<TH1 *>> &Asimov, TH1* HTruth, vector<int> &Regulariz
 
       double BinMeanBias = 0;
       for (auto B : BinBias) BinMeanBias += B*B/NX;
-      for (auto B : BinBias) cout << B*B << " "; cout << endl;
 
       Bias->SetBinContent(Regularization[I], BinMeanBias);
    }
@@ -754,4 +758,37 @@ TH1D* GetMSE(TH1* Variance, TH1* Bias)
    TH1D *MSE = (TH1D *)Variance->Clone("HMSE");
    MSE->Add(Bias);
    return MSE;
+}
+
+TH1D* GetCoverage(vector<TH1 *> &VarianceDists, vector<TH1 *> &BiasDists, vector<TH1 *> &CoverageDists, vector<int> &Regularization)
+{
+   int NX = VarianceDists[0]->GetNbinsX();
+   int NI = Regularization.size();
+
+   TH1D *Coverage = new TH1D("HCoverage", "", Regularization.back(), 0, Regularization.back());
+
+   for(int I = 0; I < NI; I++)
+   {
+      vector<double> BinCoverage(NX, 0);
+      CoverageDists.push_back((TH1D *)BiasDists[0]->Clone(Form("HCoverageDist%d", (int) Regularization[I])));
+      CoverageDists[I]->Reset();
+
+      for(int X = 0; X < NX; X++)
+      {
+         // Calculate coverage for bin X
+         double Bias = sqrt(BiasDists[I]->GetBinContent(X + 1));
+         double Error = sqrt(VarianceDists[I]->GetBinContent(X + 1));
+         double Coverage = Math::normal_cdf(Bias/Error + 1) - Math::normal_cdf(Bias/Error - 1);
+
+         BinCoverage[X] = Coverage;
+         CoverageDists[I]->SetBinContent(X + 1, Coverage);
+      }
+
+      double BinMeanCoverage = 0;
+      for (auto C : BinCoverage) BinMeanCoverage += C/NX;
+
+      Coverage->SetBinContent(Regularization[I], BinMeanCoverage);
+   }
+
+   return Coverage;
 }
