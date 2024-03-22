@@ -29,6 +29,11 @@ ExecuteMSE: Unfold1DMSE.cpp
 		-I/home/submit/mitay/physics/PhotonJet2018/Unfolding/Unfolding/RooUnfold/src -L/home/submit/mitay/physics/PhotonJet2018/Unfolding/Unfolding/RooUnfold/ -lRooUnfold \
 		`root-config --cflags --glibs`
 
+ExecuteMSELight: Unfold1DMSELight.cpp
+	g++ Unfold1DMSELight.cpp -o ExecuteMSELight \
+		-I/home/submit/mitay/physics/PhotonJet2018/Unfolding/Unfolding/RooUnfold/src -L/home/submit/mitay/physics/PhotonJet2018/Unfolding/Unfolding/RooUnfold/ -lRooUnfold \
+		`root-config --cflags --glibs`
+
 ExecuteErrors: Unfold1DErrors.cpp
 	g++ Unfold1DErrors.cpp -o ExecuteErrors \
 		-I/home/submit/mitay/physics/PhotonJet2018/Unfolding/Unfolding/RooUnfold/src -L/home/submit/mitay/physics/PhotonJet2018/Unfolding/Unfolding/RooUnfold/ -lRooUnfold \
@@ -50,4 +55,4 @@ ExecuteErrors: Unfold1DErrors.cpp
 #		-I/Users/Molly/Desktop/Unfolding/RooUnfold/build/ -L/Users/Molly/Desktop/Unfolding/RooUnfold/build/ -lRooUnfold \
 #		`root-config --cflags --glibs`
 
-RunTest: Execute ExecuteMSE ExecuteErrors
+RunTest: Execute ExecuteMSE ExecuteMSELight ExecuteErrors
