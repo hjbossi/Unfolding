@@ -13,6 +13,7 @@ using namespace std;
 #include "Math/Minimizer.h"
 #include "Math/Factory.h"
 #include "Math/Functor.h"
+#include "Math/ProbFuncMathCore.h"
 
 #include "RooUnfold.h"
 #include "RooUnfoldInvert.h"
