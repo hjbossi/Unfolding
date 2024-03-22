@@ -40,6 +40,7 @@ TH1D *VaryWithinError(TH1D *H);
 TH1D* GetVariance(vector<vector<TH1 *>> &Asimov, vector<int> &Regularization, vector<TH1 *> &Dists);
 TH1D* GetBias(vector<vector<TH1 *>> &Asimov, TH1* HTruth, vector<int> &Regularization, vector<TH1 *> &Dists);
 TH1D* GetMSE(TH1* Variance, TH1* Bias);
+TH1D* GetCoverage(vector<TH1 *> &VarianceDists, vector<TH1 *> &BiasDists, vector<TH1 *> &CoverageDists, vector<int> &Regularization);
 
 class Spectrum
 {
@@ -345,7 +346,7 @@ int main(int argc, char *argv[])
       Variance = GetVariance(HUnfolded, Iterations, VarianceDists);
       Bias = GetBias(HUnfolded, HInputGen, Iterations, BiasDists);
       MSE = GetMSE(Variance, Bias);
-      Coverage = GetCoverage(VarianceDists, BiasDists, CoverageDists);
+      Coverage = GetCoverage(VarianceDists, BiasDists, CoverageDists, Iterations);
    }
 
    if(DoSVD == true)
@@ -375,7 +376,7 @@ int main(int argc, char *argv[])
       Variance = GetVariance(HUnfolded, SVDRegularization, VarianceDists);
       Bias = GetBias(HUnfolded, HInputGen, SVDRegularization, BiasDists);
       MSE = GetMSE(Variance, Bias);
-      Coverage = GetCoverage(VarianceDists, BiasDists, CoverageDists);
+      Coverage = GetCoverage(VarianceDists, BiasDists, CoverageDists, SVDRegularization);
    }
 
    TFile OutputFile(Output.c_str(), "RECREATE");
