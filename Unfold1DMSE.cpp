@@ -779,7 +779,7 @@ TH1D* GetCoverage(vector<TH1 *> &VarianceDists, vector<TH1 *> &BiasDists, vector
          // Calculate coverage for bin X
          double Bias = sqrt(BiasDists[I]->GetBinContent(X + 1));
          double Error = sqrt(VarianceDists[I]->GetBinContent(X + 1));
-         double Coverage = Math::normal_cdf(Bias/Error + 1) - Math::normal_cdf(Bias/Error - 1);
+         double Coverage = ROOT::Math::normal_cdf(Bias/Error + 1) - ROOT::Math::normal_cdf(Bias/Error - 1);
 
          BinCoverage[X] = Coverage;
          CoverageDists[I]->SetBinContent(X + 1, Coverage);
