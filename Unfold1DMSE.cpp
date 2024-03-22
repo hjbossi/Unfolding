@@ -231,6 +231,15 @@ int main(int argc, char *argv[])
 
    RooUnfold::ErrorTreatment ErrorChoice;
 
+   vector<double> GenBinsPrimary    = DetectBins((TH1D *)InputFile.Get("HGenPrimaryBinMin"),
+                                                 (TH1D *)InputFile.Get("HGenPrimaryBinMax"));
+   vector<double> GenBinsSecondary  = DetectBins((TH1D *)InputFile.Get("HGenBinningBinMin"),
+                                                 (TH1D *)InputFile.Get("HGenBinningBinMax"));
+   vector<double> RecoBinsPrimary   = DetectBins((TH1D *)InputFile.Get("HRecoPrimaryBinMin"),
+                                                 (TH1D *)InputFile.Get("HRecoPrimaryBinMax"));
+   vector<double> RecoBinsSecondary = DetectBins((TH1D *)InputFile.Get("HRecoBinningBinMin"),
+                                                 (TH1D *)InputFile.Get("HRecoBinningBinMax"));
+
    if(Error == "kNoError") {
       cout << "kNoError" << endl;
       ErrorChoice = RooUnfold::kNoError;
