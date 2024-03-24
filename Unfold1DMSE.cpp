@@ -307,7 +307,7 @@ int main(int argc, char *argv[])
       return -1;
    }
 
-   ReweightResponse(HResponse, HPrior);
+   // ReweightResponse(HResponse, HPrior);
 
    TH1D *HGen = nullptr;
    TH1D *HReco = nullptr;
@@ -451,6 +451,8 @@ int main(int argc, char *argv[])
    TFile OutputFile(Output.c_str(), "RECREATE");
    HMeasured->Clone("HMCMeasured")->Write();
    HTruth->Clone("HMCTruth")->Write();
+   HGen->Clone("HMCGen")->Write();
+   HReco->Clone("HMCReco")->Write();
    HResponse->Clone("HMCResponse")->Write();
    Response->Mresponse().Clone("HMCFilledResponse")->Write();
 
