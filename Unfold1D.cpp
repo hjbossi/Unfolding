@@ -489,6 +489,7 @@ int main(int argc, char *argv[])
    HGen->Clone("HMCGen")->Write();
    HReco->Clone("HMCReco")->Write();
    HResponse->Clone("HMCResponse")->Write();
+   HRawResponse->Clone("HMCRawResponse")->Write();
    Response->Mresponse().Clone("HMCFilledResponse")->Write();
    HInput->Clone("HInput")->Write();
    for(TH1 *H : HUnfolded)     if(H != nullptr)   H->Write();
