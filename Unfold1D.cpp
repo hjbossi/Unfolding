@@ -280,7 +280,7 @@ int main(int argc, char *argv[])
       return -1;
    }
 
-   // ReweightResponse(HResponse, HPrior);
+   ReweightResponse(HResponse, HPrior);
 
    TH1D *HGen = nullptr;
    TH1D *HReco = nullptr;
