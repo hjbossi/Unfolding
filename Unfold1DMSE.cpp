@@ -957,7 +957,5 @@ TH1D *Collapse(TH1 *HFlat, vector<double> &BinsPrimary, vector<double> &BinsSeco
       }
    }
 
-   HCollapse->Scale(1., "width");
-
    return HCollapse;
 }

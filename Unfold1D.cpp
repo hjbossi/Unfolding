@@ -185,29 +185,34 @@ int main(int argc, char *argv[])
 
    CommandLine CL(argc, argv);
 
-   string InputFileName    = CL.Get("Input");
-   string DataName         = CL.Get("InputName",           "HDataReco");
-   string ResponseName     = CL.Get("ResponseName",        "HResponse");
-   string ResponseTruth    = CL.Get("ResponseTruth",       "HMCGen");
-   string ResponseMeasured = CL.Get("ResponseMeasured",    "HMCReco");
-   string Output           = CL.Get("Output");
-   string PriorChoice      = CL.Get("Prior",               "Original");
-   string Error            = CL.Get("Error",               "kErrors");
-   bool DoBayes            = CL.GetBool("DoBayes",         true);
-   bool DoRepeatedBayes    = CL.GetBool("DoRepeatedBayes", true);
-   bool DoSVD              = CL.GetBool("DoSVD",           true);
-   bool DoInvert           = CL.GetBool("DoInvert",        true);
-   bool DoTUnfold          = CL.GetBool("DoTUnfold",       true);
-   bool DoFit              = CL.GetBool("DoFit",           true);
-   bool DoFoldNormalize    = CL.GetBool("FoldNormalize",   false);
+   string InputFileName              = CL.Get("Input");
+   string DataName                   = CL.Get("InputName",              "HData");
+   string ResponseName               = CL.Get("ResponseName",              "HResponse");
+   string ResponseTruth              = CL.Get("ResponseTruth",             "HMCGen");
+   string ResponseMeasured           = CL.Get("ResponseMeasured",          "HMCReco");
+   string ResponseTruthEfficiency    = CL.Get("ResponseTruthEfficiency",   "HMCGenEfficiency");
+   string ResponseMeasuredEfficiency = CL.Get("ResponseMeasuredEfficiency","HMCRecoEfficiency");
+   string Output                     = CL.Get("Output");
+   string PriorChoice                = CL.Get("Prior",                     "Original");
+   string Error                      = CL.Get("Error",                     "kErrors");
+   bool DoBayes                      = CL.GetBool("DoBayes",               true);
+   bool DoRepeatedBayes              = CL.GetBool("DoRepeatedBayes",       true);
+   bool DoSVD                        = CL.GetBool("DoSVD",                 true);
+   bool DoInvert                     = CL.GetBool("DoInvert",              true);
+   bool DoTUnfold                    = CL.GetBool("DoTUnfold",             true);
+   bool DoFit                        = CL.GetBool("DoFit",                 true);
+   bool DoFoldNormalize              = CL.GetBool("FoldNormalize",         false);
    
    TFile InputFile(InputFileName.c_str());
 
-   TH1D *HMeasured = (TH1D *)InputFile.Get(ResponseMeasured.c_str());
-   TH1D *HTruth    = (TH1D *)InputFile.Get(ResponseTruth.c_str());
-   TH2D *HResponse = (TH2D *)InputFile.Get(ResponseName.c_str());
-   TH2D *HRawResponse = (TH2D *)HResponse->Clone("HRawResponse");
-   TH1D *HInput    = (TH1D *)InputFile.Get(DataName.c_str())->Clone();
+   TH1D *HMeasured      = (TH1D *)InputFile.Get(ResponseMeasured.c_str());
+   TH1D *HTruth         = (TH1D *)InputFile.Get(ResponseTruth.c_str());
+   TH1D *HMeasuredEfficiency      = (TH1D *)InputFile.Get(ResponseMeasuredEfficiency.c_str());
+   TH1D *HTruthEfficiency         = (TH1D *)InputFile.Get(ResponseTruthEfficiency.c_str());
+   TH2D *HResponse      = (TH2D *)InputFile.Get(ResponseName.c_str());
+   TH2D *HRawResponse   = (TH2D *)HResponse->Clone("HRawResponse");
+   TH1D *HInput         = (TH1D *)InputFile.Get(DataName.c_str())->Clone();
+   TH1D *HInputScaled   = (TH1D *)InputFile.Get(DataName.c_str())->Clone();
 
    int NGen = HResponse->GetNbinsY();
    int NReco = HResponse->GetNbinsX();
@@ -217,6 +222,9 @@ int main(int argc, char *argv[])
    RemoveOutOfRange(HResponse);
    RemoveOutOfRange(HRawResponse);
    RemoveOutOfRange(HInput);
+   RemoveOutOfRange(HInputScaled);
+
+   HInputScaled->Multiply(HMeasuredEfficiency);
 
    RooUnfold::ErrorTreatment ErrorChoice;
 
@@ -303,13 +311,17 @@ int main(int argc, char *argv[])
       for(int I : Iterations)
       {
          cout << I << endl;
-         RooUnfoldBayes BayesUnfold(Response, HInput, I);
+         RooUnfoldBayes BayesUnfold(Response, HInputScaled, I);
          BayesUnfold.SetNToys(1000);
          BayesUnfold.SetVerbose(-1);
+
          HUnfolded.push_back((TH1 *)(BayesUnfold.Hunfold(ErrorChoice)->Clone(Form("HUnfoldedBayes%d", I))));
          Covariance.insert(pair<string, TMatrixD>(Form("MUnfoldedBayes%d", I), BayesUnfold.Eunfold()));
          TH1D *HFold = ForwardFold(HUnfolded[HUnfolded.size()-1], HResponse);
          HFold->SetName(Form("HRefoldedBayes%d", I));
+
+         HUnfolded.back()->Divide(HTruthEfficiency);
+         HFold->Divide(HMeasuredEfficiency);
          HRefolded.push_back(HFold);
       }
    }
@@ -327,12 +339,14 @@ int main(int argc, char *argv[])
          DoProjection(HResponse, &HGenStep, &HRecoStep);
          RooUnfoldResponse ResponseStep(HRecoStep, HGenStep, HResponse);
          
-         RooUnfoldBayes BayesUnfold(&ResponseStep, HInput, 1);
+         RooUnfoldBayes BayesUnfold(&ResponseStep, HInputScaled, 1);
          BayesUnfold.SetVerbose(-1);
          HUnfolded.push_back((TH1 *)(BayesUnfold.Hunfold(ErrorChoice)->Clone(Form("HUnfoldedRepeatedBayes%d", I))));
          Covariance.insert(pair<string, TMatrixD>(Form("MUnfoldedRepeatedBayes%d", I), BayesUnfold.Eunfold()));
          TH1D *HFold = ForwardFold(HUnfolded[HUnfolded.size()-1], HResponse);
          HFold->SetName(Form("HRefoldedRepeatedBayes%d", I));
+
+         HFold->Divide(HMeasuredEfficiency);
          HRefolded.push_back(HFold);
 
          delete HGenStep;
@@ -340,17 +354,21 @@ int main(int argc, char *argv[])
          
          delete HCurrentPrior;
          HCurrentPrior = ConstructPriorCopy((TH1D *)HUnfolded[HUnfolded.size()-1]);
+         HUnfolded.back()->Divide(HTruthEfficiency);
       }
    }
 
    if(DoInvert == true)
    {
-      RooUnfoldInvert InvertUnfold(Response, HInput);
+      RooUnfoldInvert InvertUnfold(Response, HInputScaled);
       InvertUnfold.SetVerbose(-1);
       HUnfolded.push_back((TH1 *)(InvertUnfold.Hunfold(ErrorChoice)->Clone("HUnfoldedInvert")));
       Covariance.insert(pair<string, TMatrixD>("MUnfoldedInvert", InvertUnfold.Eunfold()));
       TH1D *HFold = ForwardFold(HUnfolded[HUnfolded.size()-1], HResponse);
       HFold->SetName("HRefoldedInvert");
+
+      HUnfolded.back()->Divide(HTruthEfficiency);
+      HFold->Divide(HMeasuredEfficiency);
       HRefolded.push_back(HFold);
    }
    
@@ -365,13 +383,16 @@ int main(int argc, char *argv[])
 
          cout << D << endl;
 
-         RooUnfoldSvd SVDUnfold(Response, HInput, D);
+         RooUnfoldSvd SVDUnfold(Response, HInputScaled, D);
          SVDUnfold.SetNToys(1000);
          SVDUnfold.SetVerbose(-1);
          HUnfolded.push_back((TH1 *)(SVDUnfold.Hunfold(ErrorChoice)->Clone(Form("HUnfoldedSVD%d", D))));
          Covariance.insert(pair<string, TMatrixD>(Form("MUnfoldedSVD%d", D), SVDUnfold.Eunfold()));
          TH1D *HFold = ForwardFold(HUnfolded[HUnfolded.size()-1], HResponse);
          HFold->SetName(Form("HRefoldedSVD%d", D));
+
+         HUnfolded.back()->Divide(HTruthEfficiency);
+         HFold->Divide(HMeasuredEfficiency);
          HRefolded.push_back(HFold);
       }
    }
@@ -393,7 +414,7 @@ int main(int argc, char *argv[])
       //    TUnfold::kHistMapOutputVert,
       //    TUnfold::kRegModeCurvature,
       //    TUnfold::kEConstraintArea);
-      Unfold.SetInput(HInput);
+      Unfold.SetInput(HInputScaled);
       Unfold.SetBias(HPrior);
 
       TSpline *LogTauX = nullptr, *LogTauY = nullptr, *LogTauCurvature = nullptr, *RhoLogTau = nullptr;
@@ -450,6 +471,9 @@ int main(int argc, char *argv[])
          
       TH1D *HFold = ForwardFold(H, HResponse);
       HFold->SetName("HRefoldedTUnfold");
+
+      HUnfolded.back()->Divide(HTruthEfficiency);
+      HFold->Divide(HMeasuredEfficiency);
       HRefolded.push_back(HFold);
    }
 
@@ -457,7 +481,7 @@ int main(int argc, char *argv[])
    {
       Spectrum S;
       S.SetPrior(HPrior);
-      S.SetReco(HInput);
+      S.SetReco(HInputScaled);
       S.SetMatrix(HResponse);
       S.Initialize();
       const double *X = S.DoFit();
@@ -469,6 +493,9 @@ int main(int argc, char *argv[])
          
       TH1D *HFold = ForwardFold(HUnfoldedFit, HResponse);
       HFold->SetName("HRefoldedFit");
+      
+      HUnfolded.back()->Divide(HTruthEfficiency);
+      HFold->Divide(HMeasuredEfficiency);
       HRefolded.push_back(HFold);
    }
 
@@ -492,6 +519,7 @@ int main(int argc, char *argv[])
    HRawResponse->Clone("HMCRawResponse")->Write();
    Response->Mresponse().Clone("HMCFilledResponse")->Write();
    HInput->Clone("HInput")->Write();
+   HInputScaled->Clone("HInputScaled")->Write();
    for(TH1 *H : HUnfolded)     if(H != nullptr)   H->Write();
    for(TH1 *H : HRefolded)     if(H != nullptr)   H->Write();
    for(TGraph *G : Graphs)     if(G != nullptr)   G->Write();
