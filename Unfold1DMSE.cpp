@@ -37,6 +37,7 @@ TH1D *ConstructPriorCopyExternal(string FileName, string HistName);
 TH1D *ConstructPriorFlat(vector<double> GenBinsPrimary, vector<double> GenBinsSecondary);
 void DoProjection(TH2D *HResponse, TH1D **HGen, TH1D **HReco);
 TH1D *ForwardFold(TH1 *HGen, TH2D *HResponse, TH1 *HErrors = nullptr);
+void SetErrors(TH1 *HReco, TH1 *HErrors);
 TH1D *Collapse(TH1 *HFlat, vector<double> &BinsPrimary, vector<double> &BinsSecondary, int Axis);
 TH1D *VaryWithinError(TH1D *H);
 TH1D* GetVariance(vector<vector<TH1 *>> &Asimov, vector<int> &Regularization, vector<TH1 *> &Dists, int Axis = -1);
@@ -319,7 +320,7 @@ int main(int argc, char *argv[])
    TH1D *HReco = nullptr;
    DoProjection(HResponse, &HGen, &HReco);
 
-   TH1D *HInputReco = SetErrors(HInputErrors);
+   SetErrors(HInputReco, HInputErrors);
 
    TH1D *HInputRecoFold0 = Collapse(HInputReco, RecoBinsPrimary, RecoBinsSecondary, 0);
    TH1D *HInputRecoFold1 = Collapse(HInputReco, RecoBinsPrimary, RecoBinsSecondary, 1);
@@ -756,6 +757,20 @@ TH1D *ForwardFold(TH1 *HGen, TH2D *HResponse, TH1 *HErrors)
    }
 
    return HResult;
+}
+
+void SetErrors(TH1 *HReco, TH1 *HErrors)
+{
+   int NReco = HReco->GetNbinsX();
+
+   if(HErrors != nullptr) {
+      for(int iR = 1; iR <= NReco; iR++)
+      {
+         HReco->SetBinError(iR, HErrors->GetBinError(iR));
+      }
+   }
+
+   return;
 }
 
 TH1D *VaryWithinError(TH1D *H)
