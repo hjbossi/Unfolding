@@ -193,31 +193,37 @@ int main(int argc, char *argv[])
 
    CommandLine CL(argc, argv);
 
-   string InputFileName    = CL.Get("Input");
-   string DataName         = CL.Get("InputName",           "HDataGen");
-   string ErrorName        = CL.Get("ErrorName",           "HDataErrors");
-   string ResponseName     = CL.Get("ResponseName",        "HResponse");
-   string ResponseTruth    = CL.Get("ResponseTruth",       "HMCGen");
-   string ResponseMeasured = CL.Get("ResponseMeasured",    "HMCReco");
-   string Output           = CL.Get("Output");
-   string PriorChoice      = CL.Get("Prior",               "Original");
-   string Error            = CL.Get("Error",               "kErrors");
-   bool DoBayes            = CL.GetBool("DoBayes",         true);
-   bool DoRepeatedBayes    = CL.GetBool("DoRepeatedBayes", true);
-   bool DoSVD              = CL.GetBool("DoSVD",           true);
-   bool DoInvert           = CL.GetBool("DoInvert",        true);
-   bool DoTUnfold          = CL.GetBool("DoTUnfold",       true);
-   bool DoFit              = CL.GetBool("DoFit",           true);
-   bool DoFoldNormalize    = CL.GetBool("FoldNormalize",   false);
+   string InputFileName              = CL.Get("Input");
+   string DataGenName                = CL.Get("InputGenName",              "HDataGen");
+   string DataRecoName               = CL.Get("InputRecoName",             "HDataReco");
+   string DataErrorName              = CL.Get("DataErrorName",             "HDataErrors");
+   string ResponseName               = CL.Get("ResponseName",              "HResponse");
+   string ResponseTruth              = CL.Get("ResponseTruth",             "HMCGen");
+   string ResponseMeasured           = CL.Get("ResponseMeasured",          "HMCReco");
+   string ResponseTruthEfficiency    = CL.Get("ResponseTruthEfficiency",   "HMCGenEfficiency");
+   string ResponseMeasuredEfficiency = CL.Get("ResponseMeasuredEfficiency","HMCRecoEfficiency");
+   string Output                     = CL.Get("Output");
+   string PriorChoice                = CL.Get("Prior",                     "Original");
+   string Error                      = CL.Get("Error",                     "kErrors");
+   bool DoBayes                      = CL.GetBool("DoBayes",               true);
+   bool DoRepeatedBayes              = CL.GetBool("DoRepeatedBayes",       true);
+   bool DoSVD                        = CL.GetBool("DoSVD",                 true);
+   bool DoInvert                     = CL.GetBool("DoInvert",              true);
+   bool DoTUnfold                    = CL.GetBool("DoTUnfold",             true);
+   bool DoFit                        = CL.GetBool("DoFit",                 true);
+   bool DoFoldNormalize              = CL.GetBool("FoldNormalize",         false);
    
    TFile InputFile(InputFileName.c_str());
 
-   TH1D *HMeasured = (TH1D *)InputFile.Get(ResponseMeasured.c_str());
-   TH1D *HTruth    = (TH1D *)InputFile.Get(ResponseTruth.c_str());
-   TH2D *HResponse = (TH2D *)InputFile.Get(ResponseName.c_str());
-   TH2D *HRawResponse = (TH2D *)HResponse->Clone("HRawResponse");
-   TH1D *HInputGen    = (TH1D *)InputFile.Get(DataName.c_str())->Clone();
-   TH1D *HInputErrors  = (TH1D *)InputFile.Get(ErrorName.c_str())->Clone();
+   TH1D *HMeasured      = (TH1D *)InputFile.Get(ResponseMeasured.c_str());
+   TH1D *HTruth         = (TH1D *)InputFile.Get(ResponseTruth.c_str());
+   TH1D *HMeasuredEfficiency      = (TH1D *)InputFile.Get(ResponseMeasuredEfficiency.c_str());
+   TH1D *HTruthEfficiency         = (TH1D *)InputFile.Get(ResponseTruthEfficiency.c_str());
+   TH2D *HResponse      = (TH2D *)InputFile.Get(ResponseName.c_str());
+   TH2D *HRawResponse   = (TH2D *)HResponse->Clone("HRawResponse");
+   TH1D *HInputGen      = (TH1D *)InputFile.Get(DataGenName.c_str())->Clone();
+   TH1D *HInputReco     = (TH1D *)InputFile.Get(DataRecoName.c_str())->Clone();
+   TH1D *HInputErrors   = (TH1D *)InputFile.Get(DataErrorName.c_str())->Clone();
 
    int NGen = HResponse->GetNbinsY();
    int NReco = HResponse->GetNbinsX();
@@ -313,7 +319,7 @@ int main(int argc, char *argv[])
    TH1D *HReco = nullptr;
    DoProjection(HResponse, &HGen, &HReco);
 
-   TH1D *HInputReco = ForwardFold(HInputGen, HResponse, HInputErrors);
+   TH1D *HInputReco = SetErrors(HInputErrors);
 
    TH1D *HInputRecoFold0 = Collapse(HInputReco, RecoBinsPrimary, RecoBinsSecondary, 0);
    TH1D *HInputRecoFold1 = Collapse(HInputReco, RecoBinsPrimary, RecoBinsSecondary, 1);
@@ -361,6 +367,7 @@ int main(int argc, char *argv[])
 
    for(int A = 0; A < NA; A++) {
       HAsimov.push_back((TH1D *) VaryWithinError(HInputReco)->Clone(Form("HTest%d", A)));
+      HAsimov[A]->Multiply(HMeasuredEfficiency);
    }
 
    if(DoBayes == true)
@@ -377,6 +384,7 @@ int main(int argc, char *argv[])
             BayesUnfold.SetNToys(1000);
             BayesUnfold.SetVerbose(-1);
             HUnfolded[A].push_back((TH1 *)(BayesUnfold.Hunfold(ErrorChoice)->Clone(Form("Test%dHUnfoldedBayes%d", A, I))));
+            HUnfolded[A].back()->Divide(HTruthEfficiency);
             HUnfoldedFold0[A].push_back((TH1 *) Collapse(HUnfolded[A].back(), GenBinsPrimary, GenBinsSecondary, 0)->Clone(Form("Test%dHUnfoldedBayes%dFold0", A, I)));
             HUnfoldedFold1[A].push_back((TH1 *) Collapse(HUnfolded[A].back(), GenBinsPrimary, GenBinsSecondary, 1)->Clone(Form("Test%dHUnfoldedBayes%dFold1", A, I)));
 
@@ -451,6 +459,8 @@ int main(int argc, char *argv[])
    TFile OutputFile(Output.c_str(), "RECREATE");
    HMeasured->Clone("HMCMeasured")->Write();
    HTruth->Clone("HMCTruth")->Write();
+   HMeasuredEfficiency->Clone("HMCMeasuredEfficiency")->Write();
+   HTruthEfficiency->Clone("HMCTruthEfficiency")->Write();
    HGen->Clone("HMCGen")->Write();
    HReco->Clone("HMCReco")->Write();
    HResponse->Clone("HMCResponse")->Write();
