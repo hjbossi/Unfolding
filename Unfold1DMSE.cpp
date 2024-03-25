@@ -367,7 +367,8 @@ int main(int argc, char *argv[])
    RooUnfoldResponse *Response = new RooUnfoldResponse(HReco, HGen, HResponse);
 
    for(int A = 0; A < NA; A++) {
-      HAsimov.push_back((TH1D *) VaryWithinError(HInputReco)->Clone(Form("HTest%d", A)));
+      if (A == 0) HAsimov.push_back((TH1D *) HInputReco->Clone(Form("HTest%d", A)));
+      else        HAsimov.push_back((TH1D *) VaryWithinError(HInputReco)->Clone(Form("HTest%d", A)));
       HAsimov[A]->Multiply(HMeasuredEfficiency);
    }
 
