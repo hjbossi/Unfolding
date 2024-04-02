@@ -311,7 +311,7 @@ int main(int argc, char *argv[])
    DoProjection(HResponse, &HGen, &HReco);
 
    vector<TH1 *> HAsimov;
-   vector<map<string, TMatrixD>> Covariance(NA, map<string, TMatrixD>());
+   map<string, TMatrixD> Covariance;
    // vector<vector<TH1 *>> HRefolded(NA, vector<TH1 *>(0));
    vector<vector<TH1 *>> HUnfolded(NA, vector<TH1 *>(0));
    vector<vector<TH1 *>> HUnfoldedFold0(NA, vector<TH1 *>(0));
@@ -329,7 +329,8 @@ int main(int argc, char *argv[])
    RooUnfoldResponse *Response = new RooUnfoldResponse(HReco, HGen, HResponse);
 
    for(int A = 0; A < NA; A++) {
-      HAsimov.push_back((TH1D *) VaryWithinError(HInput)->Clone(Form("HTest%d", A)));
+      if (A == 0) HAsimov.push_back((TH1D *) HInput->Clone(Form("HTest%d", A)));
+      else        HAsimov.push_back((TH1D *) VaryWithinError(HInput)->Clone(Form("HTest%d", A)));
       HAsimov[A]->Multiply(HMeasuredEfficiency);
    }
 
@@ -348,7 +349,7 @@ int main(int argc, char *argv[])
             BayesUnfold.SetVerbose(-1);
 
             HUnfolded[A].push_back((TH1 *)(BayesUnfold.Hunfold(ErrorChoice)->Clone(Form("Test%dHUnfoldedBayes%d", A, I))));
-            Covariance[A].insert(pair<string, TMatrixD>(Form("Test%dMUnfoldedBayes%d", A, I), BayesUnfold.Eunfold()));
+            if (A == 0) Covariance.insert(pair<string, TMatrixD>(Form("MUnfoldedBayes%d", I), BayesUnfold.Eunfold()));
             // TH1D *HFold = ForwardFold(HUnfolded[A][HUnfolded[A].size()-1], HResponse);
             // HFold->SetName(Form("Test%dHRefoldedBayes%d", A, I));
 
@@ -387,7 +388,7 @@ int main(int argc, char *argv[])
             SVDUnfold.SetVerbose(-1);
 
             HUnfolded[A].push_back((TH1 *)(SVDUnfold.Hunfold(ErrorChoice)->Clone(Form("Test%dHUnfoldedSVD%d", A, D))));
-            Covariance[A].insert(pair<string, TMatrixD>(Form("Test%dMUnfoldedSVD%d", A, D), SVDUnfold.Eunfold()));
+            if (A == 0) Covariance.insert(pair<string, TMatrixD>(Form("MUnfoldedSVD%d", D), SVDUnfold.Eunfold()));
             // TH1D *HFold = ForwardFold(HUnfolded[A][HUnfolded[A].size()-1], HResponse);
             // HFold->SetName(Form("Test%dHRefoldedSVD%d", A, D));
 
@@ -432,6 +433,7 @@ int main(int argc, char *argv[])
    for(TH2 *H : HCovarianceDists)               if(H != nullptr)   H->Write();
    for(TH2 *H : HCovarianceDistsFold0)          if(H != nullptr)   H->Write();
    for(TH2 *H : HCovarianceDistsFold1)          if(H != nullptr)   H->Write();
+   for(auto I : Covariance)    I.second.Write(I.first.c_str());
 
    for(int A = 0; A < NA; A++) {
       if (A == 0) {
@@ -439,7 +441,6 @@ int main(int argc, char *argv[])
          for(TH1 *H : HUnfoldedFold0[A])     if(H != nullptr)   H->Write();
          for(TH1 *H : HUnfoldedFold1[A])     if(H != nullptr)   H->Write();
          // for(TH1 *H : HRefolded[A])          if(H != nullptr)   H->Write();
-         for(auto I : Covariance[A])         I.second.Write(I.first.c_str());
       }
    }
 
@@ -762,9 +763,9 @@ void GetCovariance(vector<vector<TH1 *>> &Asimov, vector<int> &Regularization, v
 
    for(int I = 0; I < NI; I++)
    {
-      if (Axis == -1) Dists.push_back(new TH2D(Form("HErrorDist%d", (int) Regularization[I]), "", NX, 0, NX, NX, 0, NX));
-      if (Axis == 0)  Dists.push_back(new TH2D(Form("HErrorDist%dFold0", (int) Regularization[I]), "", NX, 0, NX, NX, 0, NX));
-      if (Axis == 1)  Dists.push_back(new TH2D(Form("HErrorDist%dFold1", (int) Regularization[I]), "", NX, 0, NX, NX, 0, NX));
+      if (Axis == -1) Dists.push_back(new TH2D(Form("HCovarianceDist%d", (int) Regularization[I]), "", NX, 0, NX, NX, 0, NX));
+      if (Axis == 0)  Dists.push_back(new TH2D(Form("HCovarianceDist%dFold0", (int) Regularization[I]), "", NX, 0, NX, NX, 0, NX));
+      if (Axis == 1)  Dists.push_back(new TH2D(Form("HCovarianceDist%dFold1", (int) Regularization[I]), "", NX, 0, NX, NX, 0, NX));
 
       for(int X = 0; X < NX; X++)
       {
