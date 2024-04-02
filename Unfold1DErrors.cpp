@@ -39,6 +39,7 @@ TH1D *ForwardFold(TH1 *HGen, TH2D *HResponse);
 TH1D *Collapse(TH1 *HFlat, vector<double> &BinsPrimary, vector<double> &BinsSecondary, int Axis);
 TH1D *VaryWithinError(TH1D *H);
 TH1D* GetError(vector<vector<TH1 *>> &Asimov, vector<int> &Regularization, vector<TH1 *> &Dists, int Axis = -1);
+// TH1D* GetCovariance(vector<vector<TH1 *>> &Asimov, vector<int> &Regularization, vector<TH1 *> &Dists, int Axis = -1);
 
 class Spectrum
 {
@@ -191,33 +192,37 @@ int main(int argc, char *argv[])
 
    CommandLine CL(argc, argv);
 
-   string InputFileName    = CL.Get("Input");
-   string DataName         = CL.Get("InputName",           "HDataReco");
-   string ResponseName     = CL.Get("ResponseName",        "HResponse");
-   string ResponseTruth    = CL.Get("ResponseTruth",       "HMCGen");
-   string ResponseMeasured = CL.Get("ResponseMeasured",    "HMCReco");
-   string Output           = CL.Get("Output");
-   string PriorChoice      = CL.Get("Prior",               "Original");
-   string Error            = CL.Get("Error",               "kErrors");
-   bool DoBayes            = CL.GetBool("DoBayes",         true);
-   bool DoRepeatedBayes    = CL.GetBool("DoRepeatedBayes", true);
-   bool DoSVD              = CL.GetBool("DoSVD",           true);
-   bool DoInvert           = CL.GetBool("DoInvert",        true);
-   bool DoTUnfold          = CL.GetBool("DoTUnfold",       true);
-   bool DoFit              = CL.GetBool("DoFit",           true);
-   bool DoFoldNormalize    = CL.GetBool("FoldNormalize",   false);
+   string InputFileName              = CL.Get("Input");
+   string DataName                   = CL.Get("InputName",                 "HData");
+   string ResponseName               = CL.Get("ResponseName",              "HResponse");
+   string ResponseTruth              = CL.Get("ResponseTruth",             "HMCGen");
+   string ResponseMeasured           = CL.Get("ResponseMeasured",          "HMCReco");
+   string ResponseTruthEfficiency    = CL.Get("ResponseTruthEfficiency",   "HMCGenEfficiency");
+   string ResponseMeasuredEfficiency = CL.Get("ResponseMeasuredEfficiency","HMCRecoEfficiency");
+   string Output                     = CL.Get("Output");
+   string PriorChoice                = CL.Get("Prior",                     "Original");
+   string Error                      = CL.Get("Error",                     "kErrors");
+   bool DoBayes                      = CL.GetBool("DoBayes",               true);
+   bool DoRepeatedBayes              = CL.GetBool("DoRepeatedBayes",       true);
+   bool DoSVD                        = CL.GetBool("DoSVD",                 true);
+   bool DoInvert                     = CL.GetBool("DoInvert",              true);
+   bool DoTUnfold                    = CL.GetBool("DoTUnfold",             true);
+   bool DoFit                        = CL.GetBool("DoFit",                 true);
+   bool DoFoldNormalize              = CL.GetBool("FoldNormalize",         false);
    
    TFile InputFile(InputFileName.c_str());
 
-   TH1D *HMeasured = (TH1D *)InputFile.Get(ResponseMeasured.c_str());
-   TH1D *HTruth    = (TH1D *)InputFile.Get(ResponseTruth.c_str());
-   TH2D *HResponse = (TH2D *)InputFile.Get(ResponseName.c_str());
-   TH2D *HRawResponse = (TH2D *)HResponse->Clone("HRawResponse");
-   TH1D *HInput    = (TH1D *)InputFile.Get(DataName.c_str())->Clone();
+   TH1D *HMeasured      = (TH1D *)InputFile.Get(ResponseMeasured.c_str());
+   TH1D *HTruth         = (TH1D *)InputFile.Get(ResponseTruth.c_str());
+   TH1D *HMeasuredEfficiency      = (TH1D *)InputFile.Get(ResponseMeasuredEfficiency.c_str());
+   TH1D *HTruthEfficiency         = (TH1D *)InputFile.Get(ResponseTruthEfficiency.c_str());
+   TH2D *HResponse      = (TH2D *)InputFile.Get(ResponseName.c_str());
+   TH2D *HRawResponse   = (TH2D *)HResponse->Clone("HRawResponse");
+   TH1D *HInput         = (TH1D *)InputFile.Get(DataName.c_str())->Clone();
 
    int NGen = HResponse->GetNbinsY();
    int NReco = HResponse->GetNbinsX();
-   int NA = 100;
+   int NA = 1000;
 
    RemoveOutOfRange(HMeasured);
    RemoveOutOfRange(HTruth);
@@ -235,8 +240,6 @@ int main(int argc, char *argv[])
                                                  (TH1D *)InputFile.Get("HRecoPrimaryBinMax"));
    vector<double> RecoBinsSecondary = DetectBins((TH1D *)InputFile.Get("HRecoBinningBinMin"),
                                                  (TH1D *)InputFile.Get("HRecoBinningBinMax"));
-
-   
 
    TH1D *HInputFold0 = Collapse(HInput, RecoBinsPrimary, RecoBinsSecondary, 0);
    TH1D *HInputFold1 = Collapse(HInput, RecoBinsPrimary, RecoBinsSecondary, 1);
@@ -309,7 +312,7 @@ int main(int argc, char *argv[])
 
    vector<TH1 *> HAsimov;
    vector<map<string, TMatrixD>> Covariance(NA, map<string, TMatrixD>());
-   vector<vector<TH1 *>> HRefolded(NA, vector<TH1 *>(0));
+   // vector<vector<TH1 *>> HRefolded(NA, vector<TH1 *>(0));
    vector<vector<TH1 *>> HUnfolded(NA, vector<TH1 *>(0));
    vector<vector<TH1 *>> HUnfoldedFold0(NA, vector<TH1 *>(0));
    vector<vector<TH1 *>> HUnfoldedFold1(NA, vector<TH1 *>(0));
@@ -324,6 +327,7 @@ int main(int argc, char *argv[])
 
    for(int A = 0; A < NA; A++) {
       HAsimov.push_back((TH1D *) VaryWithinError(HInput)->Clone(Form("HTest%d", A)));
+      HAsimov[A]->Multiply(HMeasuredEfficiency);
    }
 
    if(DoBayes == true)
@@ -341,13 +345,15 @@ int main(int argc, char *argv[])
             BayesUnfold.SetVerbose(-1);
 
             HUnfolded[A].push_back((TH1 *)(BayesUnfold.Hunfold(ErrorChoice)->Clone(Form("Test%dHUnfoldedBayes%d", A, I))));
+            Covariance[A].insert(pair<string, TMatrixD>(Form("Test%dMUnfoldedBayes%d", A, I), BayesUnfold.Eunfold()));
+            // TH1D *HFold = ForwardFold(HUnfolded[A][HUnfolded[A].size()-1], HResponse);
+            // HFold->SetName(Form("Test%dHRefoldedBayes%d", A, I));
+
+            HUnfolded[A].back()->Divide(HTruthEfficiency);
+            // HFold->Divide(HMeasuredEfficiency);
             HUnfoldedFold0[A].push_back((TH1 *) Collapse(HUnfolded[A].back(), GenBinsPrimary, GenBinsSecondary, 0)->Clone(Form("Test%dHUnfoldedBayes%dFold0", A, I)));
             HUnfoldedFold1[A].push_back((TH1 *) Collapse(HUnfolded[A].back(), GenBinsPrimary, GenBinsSecondary, 1)->Clone(Form("Test%dHUnfoldedBayes%dFold1", A, I)));
-
-            Covariance[A].insert(pair<string, TMatrixD>(Form("Test%dMUnfoldedBayes%d", A, I), BayesUnfold.Eunfold()));
-            TH1D *HFold = ForwardFold(HUnfolded[A][HUnfolded[A].size()-1], HResponse);
-            HFold->SetName(Form("Test%dHRefoldedBayes%d", A, I));
-            HRefolded[A].push_back(HFold);
+            // HRefolded[A].push_back(HFold);
          }
       }
 
@@ -374,13 +380,15 @@ int main(int argc, char *argv[])
             SVDUnfold.SetVerbose(-1);
 
             HUnfolded[A].push_back((TH1 *)(SVDUnfold.Hunfold(ErrorChoice)->Clone(Form("Test%dHUnfoldedSVD%d", A, D))));
+            Covariance[A].insert(pair<string, TMatrixD>(Form("Test%dMUnfoldedSVD%d", A, D), SVDUnfold.Eunfold()));
+            // TH1D *HFold = ForwardFold(HUnfolded[A][HUnfolded[A].size()-1], HResponse);
+            // HFold->SetName(Form("Test%dHRefoldedSVD%d", A, D));
+
+            HUnfolded[A].back()->Divide(HTruthEfficiency);
+            // HFold->Divide(HMeasuredEfficiency);
             HUnfoldedFold0[A].push_back((TH1 *) Collapse(HUnfolded[A].back(), GenBinsPrimary, GenBinsSecondary, 0)->Clone(Form("Test%dHUnfoldedSVD%dFold0", A, D)));
             HUnfoldedFold1[A].push_back((TH1 *) Collapse(HUnfolded[A].back(), GenBinsPrimary, GenBinsSecondary, 1)->Clone(Form("Test%dHUnfoldedSVD%dFold1", A, D)));
-
-            Covariance[A].insert(pair<string, TMatrixD>(Form("Test%dMUnfoldedSVD%d", A, D), SVDUnfold.Eunfold()));
-            TH1D *HFold = ForwardFold(HUnfolded[A][HUnfolded[A].size()-1], HResponse);
-            HFold->SetName(Form("Test%dHRefoldedSVD%d", A, D));
-            HRefolded[A].push_back(HFold);
+            // HRefolded[A].push_back(HFold);
          }
       }
 
@@ -392,10 +400,13 @@ int main(int argc, char *argv[])
    TFile OutputFile(Output.c_str(), "RECREATE");
    HMeasured->Clone("HMCMeasured")->Write();
    HTruth->Clone("HMCTruth")->Write();
+   HMeasuredEfficiency->Clone("HMCMeasuredEfficiency")->Write();
+   HTruthEfficiency->Clone("HMCTruthEfficiency")->Write();
    HGen->Clone("HMCGen")->Write();
    HReco->Clone("HMCReco")->Write();
    HResponse->Clone("HMCResponse")->Write();
    Response->Mresponse().Clone("HMCFilledResponse")->Write();
+
    HInput->Clone("HInput")->Write();
    HInputFold0->Clone("HInputFold0")->Write();
    HInputFold1->Clone("HInputFold1")->Write();
@@ -406,28 +417,16 @@ int main(int argc, char *argv[])
    for(TH1 *H : HErrorDists)               if(H != nullptr)   H->Write();
    for(TH1 *H : HErrorDistsFold0)          if(H != nullptr)   H->Write();
    for(TH1 *H : HErrorDistsFold1)          if(H != nullptr)   H->Write();
+
    for(int A = 0; A < NA; A++) {
       if (A == 0) {
          for(TH1 *H : HUnfolded[A])          if(H != nullptr)   H->Write();
          for(TH1 *H : HUnfoldedFold0[A])     if(H != nullptr)   H->Write();
          for(TH1 *H : HUnfoldedFold1[A])     if(H != nullptr)   H->Write();
-         for(TH1 *H : HRefolded[A])          if(H != nullptr)   H->Write();
+         // for(TH1 *H : HRefolded[A])          if(H != nullptr)   H->Write();
          for(auto I : Covariance[A])         I.second.Write(I.first.c_str());
       }
    }
-
-   InputFile.Get("HGenPrimaryBinMin")->Clone()->Write();
-   InputFile.Get("HGenPrimaryBinMax")->Clone()->Write();
-   InputFile.Get("HGenBinningBinMin")->Clone()->Write();
-   InputFile.Get("HGenBinningBinMax")->Clone()->Write();
-   InputFile.Get("HRecoPrimaryBinMin")->Clone()->Write();
-   InputFile.Get("HRecoPrimaryBinMax")->Clone()->Write();
-   InputFile.Get("HRecoBinningBinMin")->Clone()->Write();
-   InputFile.Get("HRecoBinningBinMax")->Clone()->Write();
-   InputFile.Get("HMatchedPrimaryBinMin")->Clone()->Write();
-   InputFile.Get("HMatchedPrimaryBinMax")->Clone()->Write();
-   InputFile.Get("HMatchedBinningBinMin")->Clone()->Write();
-   InputFile.Get("HMatchedBinningBinMax")->Clone()->Write();
 
    vector<string> ToCopy
    {
@@ -441,7 +440,6 @@ int main(int argc, char *argv[])
    HPrior->Clone("HPrior")->Write();
 
    OutputFile.Close();
-
    InputFile.Close();
 
    return 0;
@@ -563,7 +561,7 @@ TH1D *ConstructPriorCopyExternal(string FileName, string HistName)
 
    TFile File(FileName.c_str());
    TH1D *H = (TH1D *)File.Get(HistName.c_str());
-   // cout << H << " " << FileName << " " << HistName << endl;
+
    if(H != nullptr)
    {
       for(int i = 1; i <= H->GetNbinsX(); i++)
@@ -676,50 +674,6 @@ TH1D *ForwardFold(TH1 *HGen, TH2D *HResponse)
    return HResult;
 }
 
-TH1D *Collapse(TH1 *HFlat, vector<double> &BinsPrimary, vector<double> &BinsSecondary, int Axis) 
-{
-   int N = BinsPrimary.size() - 1; 
-   int M = BinsSecondary.size() - 1; 
-
-   TH1D *HCollapse;
-
-   if(Axis == 0) HCollapse = new TH1D(Form("HCollapseAxis%d", Axis), "", N, &BinsPrimary[0]);
-   else          HCollapse = new TH1D(Form("HCollapseAxis%d", Axis), "", M, &BinsSecondary[0]);
-
-   for(int iX = 1; iX <= N; iX++)
-   {
-      for(int iY = 1; iY <= M; iY++)
-      {
-         int Index = iX + (iY-1) * N;
-
-         if(Axis == 0) 
-         {
-            double Content = HFlat->GetBinContent(Index) + HCollapse->GetBinContent(iX);
-            double E = HFlat->GetBinError(Index);
-            double Error = HCollapse->GetBinError(iX);
-            Error = sqrt(Error * Error + E * E);
-            
-            HCollapse->SetBinContent(iX, Content);
-            HCollapse->SetBinError(iX, Error);
-         }
-         else 
-         {
-            double Content = HFlat->GetBinContent(Index) + HCollapse->GetBinContent(iY);
-            double E = HFlat->GetBinError(Index);
-            double Error = HCollapse->GetBinError(iY);
-            Error = sqrt(Error * Error + E * E);
-            
-            HCollapse->SetBinContent(iY, Content);
-            HCollapse->SetBinError(iY, Error);
-         }
-      }
-   }
-
-   HCollapse->Scale(1., "width");
-
-   return HCollapse;
-}
-
 TH1D *VaryWithinError(TH1D *H)
 {
    TRandom3* Random = new TRandom3(0);
@@ -783,4 +737,48 @@ TH1D* GetError(vector<vector<TH1 *>> &Asimov, vector<int> &Regularization, vecto
    }
 
    return Error;
+}
+
+TH1D *Collapse(TH1 *HFlat, vector<double> &BinsPrimary, vector<double> &BinsSecondary, int Axis) 
+{
+   int N = BinsPrimary.size() - 1; 
+   int M = BinsSecondary.size() - 1; 
+
+   TH1D *HCollapse;
+
+   if(Axis == 0) HCollapse = new TH1D(Form("HCollapseAxis%d", Axis), "", N, &BinsPrimary[0]);
+   else          HCollapse = new TH1D(Form("HCollapseAxis%d", Axis), "", M, &BinsSecondary[0]);
+
+   for(int iX = 1; iX <= N; iX++)
+   {
+      for(int iY = 1; iY <= M; iY++)
+      {
+         int Index = iX + (iY-1) * N;
+
+         if(Axis == 0) 
+         {
+            double Content = HFlat->GetBinContent(Index) + HCollapse->GetBinContent(iX);
+            double E = HFlat->GetBinError(Index);
+            double Error = HCollapse->GetBinError(iX);
+            Error = sqrt(Error * Error + E * E);
+            
+            HCollapse->SetBinContent(iX, Content);
+            HCollapse->SetBinError(iX, Error);
+         }
+         else 
+         {
+            double Content = HFlat->GetBinContent(Index) + HCollapse->GetBinContent(iY);
+            double E = HFlat->GetBinError(Index);
+            double Error = HCollapse->GetBinError(iY);
+            Error = sqrt(Error * Error + E * E);
+            
+            HCollapse->SetBinContent(iY, Content);
+            HCollapse->SetBinError(iY, Error);
+         }
+      }
+   }
+
+   HCollapse->Scale(1., "width");
+
+   return HCollapse;
 }

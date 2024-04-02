@@ -34,7 +34,7 @@ void RemoveOutOfRange(TH2D *HResponse);
 void ReweightResponse(TH2D *HResponse, TH1D *HPrior, bool NormalizePrior = true);
 TH1D *ConstructPriorCopy(TH1D *HMC);
 TH1D *ConstructPriorCopyExternal(string FileName, string HistName);
-TH1D *ConstructPriorFlat(vector<double> GenBinsPrimary, vector<double> GenBinsSecondary);
+TH1D *ConstructPriorFlat(vector<double> &GenBinsPrimary, vector<double> &GenBinsSecondary);
 void DoProjection(TH2D *HResponse, TH1D **HGen, TH1D **HReco);
 TH1D *ForwardFold(TH1 *HGen, TH2D *HResponse, TH1 *HErrors = nullptr);
 void SetErrors(TH1 *HReco, TH1 *HErrors);
@@ -108,7 +108,9 @@ public:
       Assert(NG > 0, "Fit: Please initialize gen");
       Assert(NR > 0, "Fit: Please initialize reco");
       Assert(NR == (int)Matrix.size(), "Fit: matrix size mismatch reco");
-      for(int i = 0; i < NR; i++) {
+
+      for(int i = 0; i < NR; i++) 
+      {
          cout << NG << " " << (int)Matrix[i].size() << endl;
          Assert(NG == (int)Matrix[i].size(), "Fit: matrix size mismatch gen");
       }
@@ -228,7 +230,7 @@ int main(int argc, char *argv[])
 
    int NGen = HResponse->GetNbinsY();
    int NReco = HResponse->GetNbinsX();
-   int NA = 50;
+   int NA = 1000;
 
    RemoveOutOfRange(HMeasured);
    RemoveOutOfRange(HTruth);
@@ -247,23 +249,28 @@ int main(int argc, char *argv[])
    vector<double> RecoBinsSecondary = DetectBins((TH1D *)InputFile.Get("HRecoBinningBinMin"),
                                                  (TH1D *)InputFile.Get("HRecoBinningBinMax"));
 
-   if(Error == "kNoError") {
+   if(Error == "kNoError") 
+   {
       cout << "kNoError" << endl;
       ErrorChoice = RooUnfold::kNoError;
    }
-   else if(Error == "kErrors") {
+   else if(Error == "kErrors") 
+   {
       cout << "kErrors" << endl;
       ErrorChoice = RooUnfold::kErrors;
    }
-   else if(Error == "kCovariance") {
+   else if(Error == "kCovariance") 
+   {
       cout << "kCovariance" << endl;
       ErrorChoice = RooUnfold::kCovariance;
    }
-   else if(Error == "kCovToys") {
+   else if(Error == "kCovToys") 
+   {
       cout << "kCovToys" << endl;
       ErrorChoice = RooUnfold::kCovToys;
    }
-   else if(Error == "kErrorsToys") {
+   else if(Error == "kErrorsToys") 
+   {
       cout << "kErrorsToys" << endl;
       ErrorChoice = RooUnfold::kErrorsToys;
    }
@@ -289,19 +296,7 @@ int main(int argc, char *argv[])
    }
    else if(PriorChoice == "Flat")
    {
-      vector<double> GenBinsPrimary = DetectBins((TH1D *)InputFile.Get("HGenPrimaryBinMin"),
-                                                 (TH1D *)InputFile.Get("HGenPrimaryBinMax"));
-      vector<double> GenBinsSecondary = DetectBins((TH1D *)InputFile.Get("HGenBinningBinMin"),
-                                                   (TH1D *)InputFile.Get("HGenBinningBinMax"));
-
       HPrior = ConstructPriorFlat(GenBinsPrimary, GenBinsSecondary);
-
-      int NX = HPrior->GetNbinsX();
-
-      for(int iX = 1; iX <= NX; iX++)
-      {
-         HPrior->SetBinError(iX, HInputErrors->GetBinError(iX));
-      }
    }
    else if(PriorChoice == "Original")
    {
@@ -328,7 +323,6 @@ int main(int argc, char *argv[])
    TH1D *HInputGenFold1 = Collapse(HInputGen, GenBinsPrimary, GenBinsSecondary, 1);
 
    vector<TH1 *> HAsimov;
-
    vector<vector<TH1 *>> HUnfolded(NA, vector<TH1 *>(0));
    vector<vector<TH1 *>> HUnfoldedFold0(NA, vector<TH1 *>(0));
    vector<vector<TH1 *>> HUnfoldedFold1(NA, vector<TH1 *>(0));
@@ -336,33 +330,33 @@ int main(int argc, char *argv[])
    // vector<vector<TH1 *>> HRefolded(NA, vector<TH1 *>(0));
    vector<map<string, TMatrixD>> Covariance(NA, map<string, TMatrixD>());
 
-   TH1D *Variance;
-   TH1D *VarianceFold0;
-   TH1D *VarianceFold1;
+   TH1D *HVariance;
+   TH1D *HVarianceFold0;
+   TH1D *HVarianceFold1;
 
-   TH1D *Bias;
-   TH1D *BiasFold0;
-   TH1D *BiasFold1;
+   TH1D *HBias;
+   TH1D *HBiasFold0;
+   TH1D *HBiasFold1;
 
-   TH1D *MSE;
-   TH1D *MSEFold0;
-   TH1D *MSEFold1;
+   TH1D *HMSE;
+   TH1D *HMSEFold0;
+   TH1D *HMSEFold1;
 
-   TH1D *Coverage;
-   TH1D *CoverageFold0;
-   TH1D *CoverageFold1;
+   TH1D *HCoverage;
+   TH1D *HCoverageFold0;
+   TH1D *HCoverageFold1;
 
-   vector<TH1 *> VarianceDists(0);
-   vector<TH1 *> VarianceDistsFold0(0);
-   vector<TH1 *> VarianceDistsFold1(0);
+   vector<TH1 *> HVarianceDists(0);
+   vector<TH1 *> HVarianceDistsFold0(0);
+   vector<TH1 *> HVarianceDistsFold1(0);
 
-   vector<TH1 *> BiasDists(0);
-   vector<TH1 *> BiasDistsFold0(0);
-   vector<TH1 *> BiasDistsFold1(0);
+   vector<TH1 *> HBiasDists(0);
+   vector<TH1 *> HBiasDistsFold0(0);
+   vector<TH1 *> HBiasDistsFold1(0);
 
-   vector<TH1 *> CoverageDists(0);
-   vector<TH1 *> CoverageDistsFold0(0);
-   vector<TH1 *> CoverageDistsFold1(0);
+   vector<TH1 *> HCoverageDists(0);
+   vector<TH1 *> HCoverageDistsFold0(0);
+   vector<TH1 *> HCoverageDistsFold1(0);
 
    RooUnfoldResponse *Response = new RooUnfoldResponse(HReco, HGen, HResponse);
 
@@ -385,33 +379,35 @@ int main(int argc, char *argv[])
             RooUnfoldBayes BayesUnfold(Response, HAsimov[A], I); 
             BayesUnfold.SetNToys(1000);
             BayesUnfold.SetVerbose(-1);
-            HUnfolded[A].push_back((TH1 *)(BayesUnfold.Hunfold(ErrorChoice)->Clone(Form("Test%dHUnfoldedBayes%d", A, I))));
-            HUnfolded[A].back()->Divide(HTruthEfficiency);
-            HUnfoldedFold0[A].push_back((TH1 *) Collapse(HUnfolded[A].back(), GenBinsPrimary, GenBinsSecondary, 0)->Clone(Form("Test%dHUnfoldedBayes%dFold0", A, I)));
-            HUnfoldedFold1[A].push_back((TH1 *) Collapse(HUnfolded[A].back(), GenBinsPrimary, GenBinsSecondary, 1)->Clone(Form("Test%dHUnfoldedBayes%dFold1", A, I)));
 
+            HUnfolded[A].push_back((TH1 *)(BayesUnfold.Hunfold(ErrorChoice)->Clone(Form("Test%dHUnfoldedBayes%d", A, I))));
             Covariance[A].insert(pair<string, TMatrixD>(Form("Test%dMUnfoldedBayes%d", A, I), BayesUnfold.Eunfold()));
             // TH1D *HFold = ForwardFold(HUnfolded[A][HUnfolded[A].size()-1], HResponse);
             // HFold->SetName(Form("Test%dHRefoldedBayes%d", A, I));
+
+            HUnfolded[A].back()->Divide(HTruthEfficiency);
+            // HFold->Divide(HMeasuredEfficiency);
+            HUnfoldedFold0[A].push_back((TH1 *) Collapse(HUnfolded[A].back(), GenBinsPrimary, GenBinsSecondary, 0)->Clone(Form("Test%dHUnfoldedBayes%dFold0", A, I)));
+            HUnfoldedFold1[A].push_back((TH1 *) Collapse(HUnfolded[A].back(), GenBinsPrimary, GenBinsSecondary, 1)->Clone(Form("Test%dHUnfoldedBayes%dFold1", A, I)));
             // HRefolded[A].push_back(HFold);
          }
       }
 
-      Variance = GetVariance(HUnfolded, Iterations, VarianceDists);
-      VarianceFold0 = GetVariance(HUnfoldedFold0, Iterations, VarianceDistsFold0, 0);
-      VarianceFold1 = GetVariance(HUnfoldedFold1, Iterations, VarianceDistsFold1, 1);
+      HVariance = GetVariance(HUnfolded, Iterations, HVarianceDists);
+      HVarianceFold0 = GetVariance(HUnfoldedFold0, Iterations, HVarianceDistsFold0, 0);
+      HVarianceFold1 = GetVariance(HUnfoldedFold1, Iterations, HVarianceDistsFold1, 1);
 
-      Bias = GetBias(HUnfolded, HInputGen, Iterations, BiasDists);
-      BiasFold0 = GetBias(HUnfoldedFold0, HInputGenFold0, Iterations, BiasDistsFold0, 0);
-      BiasFold1 = GetBias(HUnfoldedFold1, HInputGenFold1, Iterations, BiasDistsFold1, 1);
+      HBias = GetBias(HUnfolded, HInputGen, Iterations, HBiasDists);
+      HBiasFold0 = GetBias(HUnfoldedFold0, HInputGenFold0, Iterations, HBiasDistsFold0, 0);
+      HBiasFold1 = GetBias(HUnfoldedFold1, HInputGenFold1, Iterations, HBiasDistsFold1, 1);
       
-      MSE = GetMSE(Variance, Bias);
-      MSEFold0 = GetMSE(VarianceFold0, BiasFold0);
-      MSEFold1 = GetMSE(VarianceFold1, BiasFold1);
+      HMSE = GetMSE(HVariance, HBias);
+      HMSEFold0 = GetMSE(HVarianceFold0, HBiasFold0);
+      HMSEFold1 = GetMSE(HVarianceFold1, HBiasFold1);
 
-      Coverage = GetCoverage(VarianceDists, BiasDists, CoverageDists, Iterations);
-      CoverageFold0 = GetCoverage(VarianceDistsFold0, BiasDistsFold0, CoverageDistsFold0, Iterations, 0);
-      CoverageFold1 = GetCoverage(VarianceDistsFold1, BiasDistsFold1, CoverageDistsFold1, Iterations, 1);
+      HCoverage = GetCoverage(HVarianceDists, HBiasDists, HCoverageDists, Iterations);
+      HCoverageFold0 = GetCoverage(HVarianceDistsFold0, HBiasDistsFold0, HCoverageDistsFold0, Iterations, 0);
+      HCoverageFold1 = GetCoverage(HVarianceDistsFold1, HBiasDistsFold1, HCoverageDistsFold1, Iterations, 1);
    }
 
    if(DoSVD == true)
@@ -430,32 +426,35 @@ int main(int argc, char *argv[])
             RooUnfoldSvd SVDUnfold(Response, HAsimov[A], D); 
             SVDUnfold.SetNToys(1000);
             SVDUnfold.SetVerbose(-1);
-            HUnfolded[A].push_back((TH1 *)(SVDUnfold.Hunfold(ErrorChoice)->Clone(Form("Test%dHUnfoldedSVD%d", A, D))));
-            HUnfoldedFold0[A].push_back((TH1 *) Collapse(HUnfolded[A].back(), GenBinsPrimary, GenBinsSecondary, 0)->Clone(Form("Test%dHUnfoldedSVD%dFold0", A, D)));
-            HUnfoldedFold1[A].push_back((TH1 *) Collapse(HUnfolded[A].back(), GenBinsPrimary, GenBinsSecondary, 1)->Clone(Form("Test%dHUnfoldedSVD%dFold1", A, D)));
 
+            HUnfolded[A].push_back((TH1 *)(SVDUnfold.Hunfold(ErrorChoice)->Clone(Form("Test%dHUnfoldedSVD%d", A, D))));
             Covariance[A].insert(pair<string, TMatrixD>(Form("Test%dMUnfoldedSVD%d", A, D), SVDUnfold.Eunfold()));
             // TH1D *HFold = ForwardFold(HUnfolded[A][HUnfolded[A].size()-1], HResponse);
             // HFold->SetName(Form("Test%dHRefoldedSVD%d", A, D));
+
+            HUnfolded[A].back()->Divide(HTruthEfficiency);
+            // HFold->Divide(HMeasuredEfficiency);
+            HUnfoldedFold0[A].push_back((TH1 *) Collapse(HUnfolded[A].back(), GenBinsPrimary, GenBinsSecondary, 0)->Clone(Form("Test%dHUnfoldedSVD%dFold0", A, D)));
+            HUnfoldedFold1[A].push_back((TH1 *) Collapse(HUnfolded[A].back(), GenBinsPrimary, GenBinsSecondary, 1)->Clone(Form("Test%dHUnfoldedSVD%dFold1", A, D)));
             // HRefolded[A].push_back(HFold);
          }
       }
 
-      Variance = GetVariance(HUnfolded, SVDRegularization, VarianceDists);
-      VarianceFold0 = GetVariance(HUnfoldedFold0, SVDRegularization, VarianceDistsFold0, 0);
-      VarianceFold1 = GetVariance(HUnfoldedFold1, SVDRegularization, VarianceDistsFold1, 1);
+      HVariance = GetVariance(HUnfolded, SVDRegularization, HVarianceDists);
+      HVarianceFold0 = GetVariance(HUnfoldedFold0, SVDRegularization, HVarianceDistsFold0, 0);
+      HVarianceFold1 = GetVariance(HUnfoldedFold1, SVDRegularization, HVarianceDistsFold1, 1);
 
-      Bias = GetBias(HUnfolded, HInputGen, SVDRegularization, BiasDists);
-      BiasFold0 = GetBias(HUnfoldedFold0, HInputGenFold0, SVDRegularization, BiasDistsFold0, 0);
-      BiasFold1 = GetBias(HUnfoldedFold1, HInputGenFold1, SVDRegularization, BiasDistsFold1, 1);
+      HBias = GetBias(HUnfolded, HInputGen, SVDRegularization, HBiasDists);
+      HBiasFold0 = GetBias(HUnfoldedFold0, HInputGenFold0, SVDRegularization, HBiasDistsFold0, 0);
+      HBiasFold1 = GetBias(HUnfoldedFold1, HInputGenFold1, SVDRegularization, HBiasDistsFold1, 1);
       
-      MSE = GetMSE(Variance, Bias);
-      MSEFold0 = GetMSE(VarianceFold0, BiasFold0);
-      MSEFold1 = GetMSE(VarianceFold1, BiasFold1);
+      HMSE = GetMSE(HVariance, HBias);
+      HMSEFold0 = GetMSE(HVarianceFold0, HBiasFold0);
+      HMSEFold1 = GetMSE(HVarianceFold1, HBiasFold1);
 
-      Coverage = GetCoverage(VarianceDists, BiasDists, CoverageDists, SVDRegularization);
-      CoverageFold0 = GetCoverage(VarianceDistsFold0, BiasDistsFold0, CoverageDistsFold0, SVDRegularization, 0);
-      CoverageFold1 = GetCoverage(VarianceDistsFold1, BiasDistsFold1, CoverageDistsFold1, SVDRegularization, 1);
+      HCoverage = GetCoverage(HVarianceDists, HBiasDists, HCoverageDists, SVDRegularization);
+      HCoverageFold0 = GetCoverage(HVarianceDistsFold0, HBiasDistsFold0, HCoverageDistsFold0, SVDRegularization, 0);
+      HCoverageFold1 = GetCoverage(HVarianceDistsFold1, HBiasDistsFold1, HCoverageDistsFold1, SVDRegularization, 1);
    }
 
    TFile OutputFile(Output.c_str(), "RECREATE");
@@ -474,29 +473,29 @@ int main(int argc, char *argv[])
    HInputGen->Clone("HInputGen")->Write();
    HInputGenFold0->Clone("HInputGenFold0")->Write();
    HInputGenFold1->Clone("HInputGenFold1")->Write();
-   Variance->Clone("HVariance")->Write();
-   VarianceFold0->Clone("HVarianceFold0")->Write();
-   VarianceFold1->Clone("HVarianceFold1")->Write();
-   Bias->Clone("HBias")->Write();
-   BiasFold0->Clone("HBiasFold0")->Write();
-   BiasFold1->Clone("HBiasFold1")->Write();
-   MSE->Clone("HMSE")->Write();
-   MSEFold0->Clone("HMSEFold0")->Write();
-   MSEFold1->Clone("HMSEFold1")->Write();
-   Coverage->Clone("HCoverage")->Write();
-   CoverageFold0->Clone("HCoverageFold0")->Write();
-   CoverageFold1->Clone("HCoverageFold1")->Write();
+   HVariance->Clone("HVariance")->Write();
+   HVarianceFold0->Clone("HVarianceFold0")->Write();
+   HVarianceFold1->Clone("HVarianceFold1")->Write();
+   HBias->Clone("HBias")->Write();
+   HBiasFold0->Clone("HBiasFold0")->Write();
+   HBiasFold1->Clone("HBiasFold1")->Write();
+   HMSE->Clone("HMSE")->Write();
+   HMSEFold0->Clone("HMSEFold0")->Write();
+   HMSEFold1->Clone("HMSEFold1")->Write();
+   HCoverage->Clone("HCoverage")->Write();
+   HCoverageFold0->Clone("HCoverageFold0")->Write();
+   HCoverageFold1->Clone("HCoverageFold1")->Write();
 
    // for(TH1 *H : HAsimov)              if(H != nullptr)   H->Write();
-   for(TH1 *H : VarianceDists)        if(H != nullptr)   H->Write();
-   for(TH1 *H : VarianceDistsFold0)   if(H != nullptr)   H->Write();
-   for(TH1 *H : VarianceDistsFold1)   if(H != nullptr)   H->Write();
-   for(TH1 *H : BiasDists)            if(H != nullptr)   H->Write();
-   for(TH1 *H : BiasDistsFold0)       if(H != nullptr)   H->Write();
-   for(TH1 *H : BiasDistsFold1)       if(H != nullptr)   H->Write();
-   for(TH1 *H : CoverageDists)        if(H != nullptr)   H->Write();
-   for(TH1 *H : CoverageDistsFold0)   if(H != nullptr)   H->Write();
-   for(TH1 *H : CoverageDistsFold1)   if(H != nullptr)   H->Write();
+   for(TH1 *H : HVarianceDists)        if(H != nullptr)   H->Write();
+   for(TH1 *H : HVarianceDistsFold0)   if(H != nullptr)   H->Write();
+   for(TH1 *H : HVarianceDistsFold1)   if(H != nullptr)   H->Write();
+   for(TH1 *H : HBiasDists)            if(H != nullptr)   H->Write();
+   for(TH1 *H : HBiasDistsFold0)       if(H != nullptr)   H->Write();
+   for(TH1 *H : HBiasDistsFold1)       if(H != nullptr)   H->Write();
+   for(TH1 *H : HCoverageDists)        if(H != nullptr)   H->Write();
+   for(TH1 *H : HCoverageDistsFold0)   if(H != nullptr)   H->Write();
+   for(TH1 *H : HCoverageDistsFold1)   if(H != nullptr)   H->Write();
 
    for(int A = 0; A < NA; A++) {
       if (A == 0) {
@@ -655,18 +654,21 @@ TH1D *ConstructPriorCopyExternal(string FileName, string HistName)
    TH1D *HPrior = new TH1D("HP", "", Bins.size(), 0, Bins.size());
    for(int i = 1; i <= HPrior->GetNbinsX(); i++)
       HPrior->SetBinContent(i, Bins[i-1]);
+
    return HPrior;
 }
 
-TH1D *ConstructPriorFlat(vector<double> GenBinsPrimary, vector<double> GenBinsSecondary)
+TH1D *ConstructPriorFlat(vector<double> &GenBinsPrimary, vector<double> &GenBinsSecondary)
 {
    int N = GenBinsPrimary.size() - 1; 
    int M = GenBinsSecondary.size() - 1; 
    TH1D *HPrior = new TH1D("HP", "", N*M, 0, N*M);
 
-   for(int i = 1; i <= N; i++) {
-      for(int j = 1; j <= M; j++) {
-         HPrior->SetBinContent(i+(j-1)*N, (GenBinsPrimary[i] - GenBinsPrimary[i-1])*(GenBinsSecondary[j] - GenBinsSecondary[j-1]));
+   for(int iX = 1; iX <= N; iX++) 
+   {
+      for(int iY = 1; iY <= M; iY++) 
+      {
+         HPrior->SetBinContent(iX + (iY-1) * N, (GenBinsPrimary[iX] - GenBinsPrimary[iX-1])*(GenBinsSecondary[iY] - GenBinsSecondary[iY-1]));
       }
    }
    

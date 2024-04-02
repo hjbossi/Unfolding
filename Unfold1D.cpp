@@ -32,7 +32,7 @@ void RemoveOutOfRange(TH2D *HResponse);
 void ReweightResponse(TH2D *HResponse, TH1D *HPrior, bool NormalizePrior = true);
 TH1D *ConstructPriorCopy(TH1D *HMC);
 TH1D *ConstructPriorCopyExternal(string FileName, string HistName);
-TH1D *ConstructPriorFlat(vector<double> GenBinsPrimary, vector<double> GenBinsSecondary);
+TH1D *ConstructPriorFlat(vector<double> &GenBinsPrimary, vector<double> &GenBinsSecondary);
 void DoProjection(TH2D *HResponse, TH1D **HGen, TH1D **HReco);
 TH1D *ForwardFold(TH1 *HGen, TH2D *HResponse);
 
@@ -99,7 +99,9 @@ public:
       Assert(NG > 0, "Fit: Please initialize gen");
       Assert(NR > 0, "Fit: Please initialize reco");
       Assert(NR == (int)Matrix.size(), "Fit: matrix size mismatch reco");
-      for(int i = 0; i < NR; i++) {
+
+      for(int i = 0; i < NR; i++) 
+      {
          cout << NG << " " << (int)Matrix[i].size() << endl;
          Assert(NG == (int)Matrix[i].size(), "Fit: matrix size mismatch gen");
       }
@@ -186,7 +188,7 @@ int main(int argc, char *argv[])
    CommandLine CL(argc, argv);
 
    string InputFileName              = CL.Get("Input");
-   string DataName                   = CL.Get("InputName",              "HData");
+   string DataName                   = CL.Get("InputName",                 "HData");
    string ResponseName               = CL.Get("ResponseName",              "HResponse");
    string ResponseTruth              = CL.Get("ResponseTruth",             "HMCGen");
    string ResponseMeasured           = CL.Get("ResponseMeasured",          "HMCReco");
@@ -228,23 +230,37 @@ int main(int argc, char *argv[])
 
    RooUnfold::ErrorTreatment ErrorChoice;
 
-   if(Error == "kNoError") {
+   vector<double> GenBinsPrimary    = DetectBins((TH1D *)InputFile.Get("HGenPrimaryBinMin"),
+                                                 (TH1D *)InputFile.Get("HGenPrimaryBinMax"));
+   vector<double> GenBinsSecondary  = DetectBins((TH1D *)InputFile.Get("HGenBinningBinMin"),
+                                                 (TH1D *)InputFile.Get("HGenBinningBinMax"));
+   vector<double> RecoBinsPrimary   = DetectBins((TH1D *)InputFile.Get("HRecoPrimaryBinMin"),
+                                                 (TH1D *)InputFile.Get("HRecoPrimaryBinMax"));
+   vector<double> RecoBinsSecondary = DetectBins((TH1D *)InputFile.Get("HRecoBinningBinMin"),
+                                                 (TH1D *)InputFile.Get("HRecoBinningBinMax"));
+
+   if(Error == "kNoError") 
+   {
       cout << "kNoError" << endl;
       ErrorChoice = RooUnfold::kNoError;
    }
-   else if(Error == "kErrors") {
+   else if(Error == "kErrors") 
+   {
       cout << "kErrors" << endl;
       ErrorChoice = RooUnfold::kErrors;
    }
-   else if(Error == "kCovariance") {
+   else if(Error == "kCovariance") 
+   {
       cout << "kCovariance" << endl;
       ErrorChoice = RooUnfold::kCovariance;
    }
-   else if(Error == "kCovToys") {
+   else if(Error == "kCovToys") 
+   {
       cout << "kCovToys" << endl;
       ErrorChoice = RooUnfold::kCovToys;
    }
-   else if(Error == "kErrorsToys") {
+   else if(Error == "kErrorsToys") 
+   {
       cout << "kErrorsToys" << endl;
       ErrorChoice = RooUnfold::kErrorsToys;
    }
@@ -270,11 +286,6 @@ int main(int argc, char *argv[])
    }
    else if(PriorChoice == "Flat")
    {
-      vector<double> GenBinsPrimary = DetectBins((TH1D *)InputFile.Get("HGenPrimaryBinMin"),
-                                                 (TH1D *)InputFile.Get("HGenPrimaryBinMax"));
-      vector<double> GenBinsSecondary = DetectBins((TH1D *)InputFile.Get("HGenBinningBinMin"),
-                                                   (TH1D *)InputFile.Get("HGenBinningBinMax"));
-
       HPrior = ConstructPriorFlat(GenBinsPrimary, GenBinsSecondary);
    }
    else if(PriorChoice == "Original")
@@ -386,6 +397,7 @@ int main(int argc, char *argv[])
          RooUnfoldSvd SVDUnfold(Response, HInputScaled, D);
          SVDUnfold.SetNToys(1000);
          SVDUnfold.SetVerbose(-1);
+
          HUnfolded.push_back((TH1 *)(SVDUnfold.Hunfold(ErrorChoice)->Clone(Form("HUnfoldedSVD%d", D))));
          Covariance.insert(pair<string, TMatrixD>(Form("MUnfoldedSVD%d", D), SVDUnfold.Eunfold()));
          TH1D *HFold = ForwardFold(HUnfolded[HUnfolded.size()-1], HResponse);
@@ -513,11 +525,14 @@ int main(int argc, char *argv[])
    TFile OutputFile(Output.c_str(), "RECREATE");
    HMeasured->Clone("HMCMeasured")->Write();
    HTruth->Clone("HMCTruth")->Write();
+   HMeasuredEfficiency->Clone("HMCMeasuredEfficiency")->Write();
+   HTruthEfficiency->Clone("HMCTruthEfficiency")->Write();
    HGen->Clone("HMCGen")->Write();
    HReco->Clone("HMCReco")->Write();
    HResponse->Clone("HMCResponse")->Write();
    HRawResponse->Clone("HMCRawResponse")->Write();
    Response->Mresponse().Clone("HMCFilledResponse")->Write();
+
    HInput->Clone("HInput")->Write();
    HInputScaled->Clone("HInputScaled")->Write();
    for(TH1 *H : HUnfolded)     if(H != nullptr)   H->Write();
@@ -553,7 +568,6 @@ int main(int argc, char *argv[])
    HPrior->Clone("HPrior")->Write();
 
    OutputFile.Close();
-
    InputFile.Close();
 
    return 0;
@@ -675,7 +689,7 @@ TH1D *ConstructPriorCopyExternal(string FileName, string HistName)
 
    TFile File(FileName.c_str());
    TH1D *H = (TH1D *)File.Get(HistName.c_str());
-   // cout << H << " " << FileName << " " << HistName << endl;
+
    if(H != nullptr)
    {
       for(int i = 1; i <= H->GetNbinsX(); i++)
@@ -689,18 +703,21 @@ TH1D *ConstructPriorCopyExternal(string FileName, string HistName)
    TH1D *HPrior = new TH1D("HP", "", Bins.size(), 0, Bins.size());
    for(int i = 1; i <= HPrior->GetNbinsX(); i++)
       HPrior->SetBinContent(i, Bins[i-1]);
+
    return HPrior;
 }
 
-TH1D *ConstructPriorFlat(vector<double> GenBinsPrimary, vector<double> GenBinsSecondary)
+TH1D *ConstructPriorFlat(vector<double> &GenBinsPrimary, vector<double> &GenBinsSecondary)
 {
    int N = GenBinsPrimary.size() - 1; 
    int M = GenBinsSecondary.size() - 1; 
    TH1D *HPrior = new TH1D("HP", "", N*M, 0, N*M);
 
-   for(int i = 1; i <= N; i++) {
-      for(int j = 1; j <= M; j++) {
-         HPrior->SetBinContent(i+(j-1)*N, (GenBinsPrimary[i] - GenBinsPrimary[i-1])*(GenBinsSecondary[j] - GenBinsSecondary[j-1]));
+   for(int iX = 1; iX <= N; iX++) 
+   {
+      for(int iY = 1; iY <= M; iY++) 
+      {
+         HPrior->SetBinContent(iX + (iY-1) * N, (GenBinsPrimary[iX] - GenBinsPrimary[iX-1])*(GenBinsSecondary[iY] - GenBinsSecondary[iY-1]));
       }
    }
    
@@ -784,5 +801,3 @@ TH1D *ForwardFold(TH1 *HGen, TH2D *HResponse)
 
    return HResult;
 }
-
-
