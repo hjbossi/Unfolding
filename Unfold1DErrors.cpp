@@ -793,7 +793,7 @@ void GetCovariance(vector<vector<TH1 *>> &Asimov, vector<int> &Regularization, v
    }
 }
 
-TH2D *Collapse(TH1 *HFlat, vector<double> &BinsPrimary, vector<double> &BinsSecondary, int Axis) 
+TH1D *Collapse(TH1 *HFlat, vector<double> &BinsPrimary, vector<double> &BinsSecondary, int Axis) 
 {
    int N = BinsPrimary.size() - 1; 
    int M = BinsSecondary.size() - 1; 
