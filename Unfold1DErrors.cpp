@@ -762,7 +762,6 @@ void GetCovariance(vector<vector<TH1 *>> &Asimov, vector<int> &Regularization, v
 
    for(int I = 0; I < NI; I++)
    {
-      vector<vector<double>> BinCovariance(NX, vector<double>(NX, 0));
       if (Axis == -1) Dists.push_back(new TH2D(Form("HErrorDist%d", (int) Regularization[I]), "", NX, 0, NX, NX, 0, NX));
       if (Axis == 0)  Dists.push_back(new TH2D(Form("HErrorDist%dFold0", (int) Regularization[I]), "", NX, 0, NX, NX, 0, NX));
       if (Axis == 1)  Dists.push_back(new TH2D(Form("HErrorDist%dFold1", (int) Regularization[I]), "", NX, 0, NX, NX, 0, NX));
@@ -786,7 +785,6 @@ void GetCovariance(vector<vector<TH1 *>> &Asimov, vector<int> &Regularization, v
 
             Covariance /= NA > 1 ? (NA - 1) : NA;
 
-            BinError[X][Y] = Covariance;
             Dists[I]->SetBinContent(X + 1, Y + 1, Covariance);
          }
       }
