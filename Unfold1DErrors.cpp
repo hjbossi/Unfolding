@@ -763,7 +763,7 @@ void GetCovariance(vector<vector<TH1 *>> &Asimov, vector<int> &Regularization, v
 
    for(int I = 0; I < NI; I++)
    {
-      Double_t *Bins = Asimov[0][0]->GetXaxis()->GetXbins()->GetArray();
+      const double *Bins = Asimov[0][0]->GetXaxis()->GetXbins()->GetArray();
 
       if (Axis == -1) Dists.push_back(new TH2D(Form("HCovarianceDist%d", (int) Regularization[I]), "", NX, Bins, NX, Bins));
       if (Axis == 0)  Dists.push_back(new TH2D(Form("HCovarianceDist%dFold0", (int) Regularization[I]), "", NX, Bins, NX, Bins));
