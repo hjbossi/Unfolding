@@ -39,7 +39,7 @@ TH1D *ForwardFold(TH1 *HGen, TH2D *HResponse);
 TH1D *Collapse(TH1 *HFlat, vector<double> &BinsPrimary, vector<double> &BinsSecondary, int Axis);
 TH1D *VaryWithinError(TH1D *H);
 TH1D* GetError(vector<vector<TH1 *>> &Asimov, vector<int> &Regularization, vector<TH1 *> &Dists, int Axis = -1);
-// TH1D* GetCovariance(vector<vector<TH1 *>> &Asimov, vector<int> &Regularization, vector<TH1 *> &Dists, int Axis = -1);
+void GetCovariance(vector<vector<TH1 *>> &Asimov, vector<int> &Regularization, vector<TH2 *> &Dists, int Axis = -1);
 
 class Spectrum
 {
@@ -222,7 +222,7 @@ int main(int argc, char *argv[])
 
    int NGen = HResponse->GetNbinsY();
    int NReco = HResponse->GetNbinsX();
-   int NA = 1000;
+   int NA = 100;
 
    RemoveOutOfRange(HMeasured);
    RemoveOutOfRange(HTruth);
@@ -319,6 +319,9 @@ int main(int argc, char *argv[])
    vector<TH1 *> HErrorDists(0);
    vector<TH1 *> HErrorDistsFold0(0);
    vector<TH1 *> HErrorDistsFold1(0);
+   vector<TH2 *> HCovarianceDists(0);
+   vector<TH2 *> HCovarianceDistsFold0(0);
+   vector<TH2 *> HCovarianceDistsFold1(0);
    TH1D *HError;
    TH1D *HErrorFold0;
    TH1D *HErrorFold1;
@@ -360,6 +363,10 @@ int main(int argc, char *argv[])
       HError = GetError(HUnfolded, Iterations, HErrorDists);
       HErrorFold0 = GetError(HUnfoldedFold0, Iterations, HErrorDistsFold0, 0);
       HErrorFold1 = GetError(HUnfoldedFold1, Iterations, HErrorDistsFold1, 1);
+
+      GetCovariance(HUnfolded, Iterations, HCovarianceDists);
+      GetCovariance(HUnfoldedFold0, Iterations, HCovarianceDistsFold0, 0);
+      GetCovariance(HUnfoldedFold1, Iterations, HCovarianceDistsFold1, 1);
    }
 
    if(DoSVD == true)
@@ -395,6 +402,10 @@ int main(int argc, char *argv[])
       HError = GetError(HUnfolded, SVDRegularization, HErrorDists);
       HErrorFold0 = GetError(HUnfoldedFold0, SVDRegularization, HErrorDistsFold0, 0);
       HErrorFold1 = GetError(HUnfoldedFold1, SVDRegularization, HErrorDistsFold1, 1);
+
+      GetCovariance(HUnfolded, SVDRegularization, HCovarianceDists);
+      GetCovariance(HUnfoldedFold0, SVDRegularization, HCovarianceDistsFold0, 0);
+      GetCovariance(HUnfoldedFold1, SVDRegularization, HCovarianceDistsFold1, 1);
    }
 
    TFile OutputFile(Output.c_str(), "RECREATE");
@@ -413,10 +424,14 @@ int main(int argc, char *argv[])
    HError->Clone("HError")->Write();
    HErrorFold0->Clone("HErrorFold0")->Write();
    HErrorFold1->Clone("HErrorFold1")->Write();
+
    // for(TH1 *H : HAsimov)                     if(H != nullptr)   H->Write();
    for(TH1 *H : HErrorDists)               if(H != nullptr)   H->Write();
    for(TH1 *H : HErrorDistsFold0)          if(H != nullptr)   H->Write();
    for(TH1 *H : HErrorDistsFold1)          if(H != nullptr)   H->Write();
+   for(TH2 *H : HCovarianceDists)               if(H != nullptr)   H->Write();
+   for(TH2 *H : HCovarianceDistsFold0)          if(H != nullptr)   H->Write();
+   for(TH2 *H : HCovarianceDistsFold1)          if(H != nullptr)   H->Write();
 
    for(int A = 0; A < NA; A++) {
       if (A == 0) {
@@ -739,7 +754,46 @@ TH1D* GetError(vector<vector<TH1 *>> &Asimov, vector<int> &Regularization, vecto
    return Error;
 }
 
-TH1D *Collapse(TH1 *HFlat, vector<double> &BinsPrimary, vector<double> &BinsSecondary, int Axis) 
+void GetCovariance(vector<vector<TH1 *>> &Asimov, vector<int> &Regularization, vector<TH2 *> &Dists, int Axis)
+{
+   int NX = Asimov[0][0]->GetNbinsX();
+   int NA = Asimov.size();
+   int NI = Regularization.size();
+
+   for(int I = 0; I < NI; I++)
+   {
+      vector<vector<double>> BinCovariance(NX, vector<double>(NX, 0));
+      if (Axis == -1) Dists.push_back(new TH2D(Form("HErrorDist%d", (int) Regularization[I]), "", NX, 0, NX, NX, 0, NX));
+      if (Axis == 0)  Dists.push_back(new TH2D(Form("HErrorDist%dFold0", (int) Regularization[I]), "", NX, 0, NX, NX, 0, NX));
+      if (Axis == 1)  Dists.push_back(new TH2D(Form("HErrorDist%dFold1", (int) Regularization[I]), "", NX, 0, NX, NX, 0, NX));
+
+      for(int X = 0; X < NX; X++)
+      {
+         for(int Y = 0; Y < NX; Y++)
+         {
+            // Calculate mean for bin X and bin Y
+            double MeanX = 0;
+            double MeanY = 0;
+
+            for(int A = 0; A < NA; A++) 
+            {
+               MeanX += Asimov[A][I]->GetBinContent(X + 1) / NA;
+               MeanY += Asimov[A][I]->GetBinContent(Y + 1) / NA;
+            }
+
+            double Covariance = 0;
+            for(int A = 0; A < NA; A++) Covariance += (Asimov[A][I]->GetBinContent(X + 1) - MeanX) * (Asimov[A][I]->GetBinContent(Y + 1) - MeanY);
+
+            Covariance /= NA > 1 ? (NA - 1) : NA;
+
+            BinError[X][Y] = Covariance;
+            Dists[I]->SetBinContent(X + 1, Y + 1, Covariance);
+         }
+      }
+   }
+}
+
+TH2D *Collapse(TH1 *HFlat, vector<double> &BinsPrimary, vector<double> &BinsSecondary, int Axis) 
 {
    int N = BinsPrimary.size() - 1; 
    int M = BinsSecondary.size() - 1; 
