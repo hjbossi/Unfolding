@@ -763,9 +763,11 @@ void GetCovariance(vector<vector<TH1 *>> &Asimov, vector<int> &Regularization, v
 
    for(int I = 0; I < NI; I++)
    {
-      if (Axis == -1) Dists.push_back(new TH2D(Form("HCovarianceDist%d", (int) Regularization[I]), "", NX, 0, NX, NX, 0, NX));
-      if (Axis == 0)  Dists.push_back(new TH2D(Form("HCovarianceDist%dFold0", (int) Regularization[I]), "", NX, 0, NX, NX, 0, NX));
-      if (Axis == 1)  Dists.push_back(new TH2D(Form("HCovarianceDist%dFold1", (int) Regularization[I]), "", NX, 0, NX, NX, 0, NX));
+      double *Bins = Asimov[0][0]->GetXaxis()->GetXbins()->GetArray();
+
+      if (Axis == -1) Dists.push_back(new TH2D(Form("HCovarianceDist%d", (int) Regularization[I]), "", NX, Bins, NX, Bins));
+      if (Axis == 0)  Dists.push_back(new TH2D(Form("HCovarianceDist%dFold0", (int) Regularization[I]), "", NX, Bins, NX, Bins));
+      if (Axis == 1)  Dists.push_back(new TH2D(Form("HCovarianceDist%dFold1", (int) Regularization[I]), "", NX, Bins, NX, Bins));
 
       for(int X = 0; X < NX; X++)
       {
@@ -816,7 +818,7 @@ TH1D *Collapse(TH1 *HFlat, vector<double> &BinsPrimary, vector<double> &BinsSeco
             Error = sqrt(Error * Error + E * E);
             
             HCollapse->SetBinContent(iX, Content);
-            HCollapse->SetBinError(iX, Error);
+            // HCollapse->SetBinError(iX, Error);
          }
          else 
          {
@@ -826,7 +828,7 @@ TH1D *Collapse(TH1 *HFlat, vector<double> &BinsPrimary, vector<double> &BinsSeco
             Error = sqrt(Error * Error + E * E);
             
             HCollapse->SetBinContent(iY, Content);
-            HCollapse->SetBinError(iY, Error);
+            // HCollapse->SetBinError(iY, Error);
          }
       }
    }
