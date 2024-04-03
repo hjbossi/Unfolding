@@ -40,12 +40,11 @@ TH1D *ForwardFold(TH1 *HGen, TH2D *HResponse, TH1 *HErrors = nullptr);
 void SetErrors(TH1 *HReco, TH1 *HErrors);
 TH1D *Collapse(TH1 *HFlat, vector<double> &BinsPrimary, vector<double> &BinsSecondary, int Axis);
 TH1D *VaryWithinError(TH1D *H);
-TH1D* GetVariance(vector<vector<TH1 *>> &Asimov, vector<int> &Regularization, vector<TH1 *> &Dists, int Axis = -1);
-TH1D* GetBias(vector<vector<TH1 *>> &Asimov, TH1* HTruth, vector<int> &Regularization, vector<TH1 *> &Dists, int Axis = -1);
-// TH1D* GetVariance(vector<vector<vector<double>>> &Asimov, vector<int> &Regularization, vector<TH1 *> &Dists, int Axis = -1);
-// TH1D* GetBias(vector<vector<vector<double>>> &Asimov, TH1* HTruth, vector<int> &Regularization, vector<TH1 *> &Dists, int Axis = -1);
+TH1D* GetVariance(vector<vector<vector<double>>> &Asimov, TH1* HTruth, vector<int> &Regularization, vector<TH1 *> &Dists, int Axis = -1);
+TH1D* GetBias(vector<vector<vector<double>>> &Asimov, TH1* HTruth, vector<int> &Regularization, vector<TH1 *> &Dists, int Axis = -1);
 TH1D* GetMSE(TH1* Variance, TH1* Bias, int Axis = -1);
 TH1D* GetCoverage(vector<TH1 *> &VarianceDists, vector<TH1 *> &BiasDists, vector<TH1 *> &CoverageDists, vector<int> &Regularization, int Axis = -1);
+void Transfer(vector<vector<vector<double>>> &Asimov, TH1D* H, int A, int I);
 
 class Spectrum
 {
@@ -324,12 +323,9 @@ int main(int argc, char *argv[])
    TH1D *HInputGenFold0 = Collapse(HInputGen, GenBinsPrimary, GenBinsSecondary, 0);
    TH1D *HInputGenFold1 = Collapse(HInputGen, GenBinsPrimary, GenBinsSecondary, 1);
 
-   vector<vector<TH1 *>> HUnfolded(NA, vector<TH1 *>(0));
-   vector<vector<TH1 *>> HUnfoldedFold0(NA, vector<TH1 *>(0));
-   vector<vector<TH1 *>> HUnfoldedFold1(NA, vector<TH1 *>(0));
-
-   // vector<vector<TH1 *>> HRefolded(NA, vector<TH1 *>(0));
-   vector<map<string, TMatrixD>> Covariance(NA, map<string, TMatrixD>());
+   vector<vector<vector<double>>> HUnfolded(NA, vector<vector<double>>(65, vector<double>(NGen, 0)));
+   vector<vector<vector<double>>> HUnfoldedFold0(NA, vector<vector<double>>(65, vector<double>(GenBinsPrimary.size(), 0)));
+   vector<vector<vector<double>>> HUnfoldedFold1(NA, vector<vector<double>>(65, vector<double>(GenBinsSecondary.size(), 0)));
 
    TH1D *HVariance;
    TH1D *HVarianceFold0;
@@ -359,6 +355,8 @@ int main(int argc, char *argv[])
    vector<TH1 *> HCoverageDistsFold0(0);
    vector<TH1 *> HCoverageDistsFold1(0);
 
+   TH1 *HAsimov;
+
    RooUnfoldResponse *Response = new RooUnfoldResponse(HReco, HGen, HResponse);
 
    if(DoBayes == true)
@@ -371,8 +369,6 @@ int main(int argc, char *argv[])
 
          for(int I : Iterations)
          {
-            TH1 *HAsimov;
-
             if (A == 0) HAsimov = (TH1D *) HInputReco->Clone();
             else        HAsimov = (TH1D *) VaryWithinError(HInputReco);
             
@@ -381,24 +377,22 @@ int main(int argc, char *argv[])
             BayesUnfold.SetNToys(1000);
             BayesUnfold.SetVerbose(-1);
 
-            HUnfolded[A].push_back((TH1 *)(BayesUnfold.Hunfold(ErrorChoice)->Clone(Form("Test%dHUnfoldedBayes%d", A, I))));
-            Covariance[A].insert(pair<string, TMatrixD>(Form("Test%dMUnfoldedBayes%d", A, I), BayesUnfold.Eunfold()));
-            // TH1D *HFold = ForwardFold(HUnfolded[A][HUnfolded[A].size()-1], HResponse);
-            // HFold->SetName(Form("Test%dHRefoldedBayes%d", A, I));
+            TH1 *HTemp = (TH1 *) BayesUnfold.Hunfold(ErrorChoice);
+            HTemp->Divide(HTruthEfficiency);
+            TH1 *HTempFold0 = (TH1 *) Collapse(HTemp, GenBinsPrimary, GenBinsSecondary, 0);
+            TH1 *HTempFold1 = (TH1 *) Collapse(HTemp, GenBinsPrimary, GenBinsSecondary, 1);
 
-            HUnfolded[A].back()->Divide(HTruthEfficiency);
-            // HFold->Divide(HMeasuredEfficiency);
-            HUnfoldedFold0[A].push_back((TH1 *) Collapse(HUnfolded[A].back(), GenBinsPrimary, GenBinsSecondary, 0)->Clone(Form("Test%dHUnfoldedBayes%dFold0", A, I)));
-            HUnfoldedFold1[A].push_back((TH1 *) Collapse(HUnfolded[A].back(), GenBinsPrimary, GenBinsSecondary, 1)->Clone(Form("Test%dHUnfoldedBayes%dFold1", A, I)));
-            // HRefolded[A].push_back(HFold);
+            Transfer(HUnfolded, HTemp, A, I);
+            Transfer(HUnfoldedFold0, HTempFold0, A, I);
+            Transfer(HUnfoldedFold1, HTempFold1, A, I);
 
-            delete HAsimov;
+            delete HAsimov; delete HTemp; delete HTempFold0; delete HTempFold1;
          }
       }
 
-      HVariance = GetVariance(HUnfolded, Iterations, HVarianceDists);
-      HVarianceFold0 = GetVariance(HUnfoldedFold0, Iterations, HVarianceDistsFold0, 0);
-      HVarianceFold1 = GetVariance(HUnfoldedFold1, Iterations, HVarianceDistsFold1, 1);
+      HVariance = GetVariance(HUnfolded, HInputGen, Iterations, HVarianceDists);
+      HVarianceFold0 = GetVariance(HUnfoldedFold0, HInputGenFold0, Iterations, HVarianceDistsFold0, 0);
+      HVarianceFold1 = GetVariance(HUnfoldedFold1, HInputGenFold1, Iterations, HVarianceDistsFold1, 1);
 
       HBias = GetBias(HUnfolded, HInputGen, Iterations, HBiasDists);
       HBiasFold0 = GetBias(HUnfoldedFold0, HInputGenFold0, Iterations, HBiasDistsFold0, 0);
@@ -426,8 +420,6 @@ int main(int argc, char *argv[])
             if(D >= HGen->GetNbinsX())
                continue;
 
-            TH1 *HAsimov;
-
             if (A == 0) HAsimov = (TH1D *) HInputReco->Clone();
             else        HAsimov = (TH1D *) VaryWithinError(HInputReco);
             
@@ -436,24 +428,22 @@ int main(int argc, char *argv[])
             SVDUnfold.SetNToys(1000);
             SVDUnfold.SetVerbose(-1);
 
-            HUnfolded[A].push_back((TH1 *)(SVDUnfold.Hunfold(ErrorChoice)->Clone(Form("Test%dHUnfoldedSVD%d", A, D))));
-            Covariance[A].insert(pair<string, TMatrixD>(Form("Test%dMUnfoldedSVD%d", A, D), SVDUnfold.Eunfold()));
-            // TH1D *HFold = ForwardFold(HUnfolded[A][HUnfolded[A].size()-1], HResponse);
-            // HFold->SetName(Form("Test%dHRefoldedSVD%d", A, D));
+            TH1 *HTemp = (TH1 *) SVDUnfold.Hunfold(ErrorChoice);
+            HTemp->Divide(HTruthEfficiency);
+            TH1 *HTempFold0 = (TH1 *) Collapse(HTemp, GenBinsPrimary, GenBinsSecondary, 0);
+            TH1 *HTempFold1 = (TH1 *) Collapse(HTemp, GenBinsPrimary, GenBinsSecondary, 1);
 
-            HUnfolded[A].back()->Divide(HTruthEfficiency);
-            // HFold->Divide(HMeasuredEfficiency);
-            HUnfoldedFold0[A].push_back((TH1 *) Collapse(HUnfolded[A].back(), GenBinsPrimary, GenBinsSecondary, 0)->Clone(Form("Test%dHUnfoldedSVD%dFold0", A, D)));
-            HUnfoldedFold1[A].push_back((TH1 *) Collapse(HUnfolded[A].back(), GenBinsPrimary, GenBinsSecondary, 1)->Clone(Form("Test%dHUnfoldedSVD%dFold1", A, D)));
-            // HRefolded[A].push_back(HFold);
+            Transfer(HUnfolded, HTemp, A, D);
+            Transfer(HUnfoldedFold0, HTempFold0, A, D);
+            Transfer(HUnfoldedFold1, HTempFold1, A, D);
 
-            delete HAsimov;
+            delete HAsimov; delete HTemp; delete HTempFold0; delete HTempFold1;
          }
       }
 
-      HVariance = GetVariance(HUnfolded, SVDRegularization, HVarianceDists);
-      HVarianceFold0 = GetVariance(HUnfoldedFold0, SVDRegularization, HVarianceDistsFold0, 0);
-      HVarianceFold1 = GetVariance(HUnfoldedFold1, SVDRegularization, HVarianceDistsFold1, 1);
+      HVariance = GetVariance(HUnfolded, HInputGen, SVDRegularization, HVarianceDists);
+      HVarianceFold0 = GetVariance(HUnfoldedFold0, HInputGenFold0, SVDRegularization, HVarianceDistsFold0, 0);
+      HVarianceFold1 = GetVariance(HUnfoldedFold1, HInputGenFold1, SVDRegularization, HVarianceDistsFold1, 1);
 
       HBias = GetBias(HUnfolded, HInputGen, SVDRegularization, HBiasDists);
       HBiasFold0 = GetBias(HUnfoldedFold0, HInputGenFold0, SVDRegularization, HBiasDistsFold0, 0);
@@ -507,15 +497,13 @@ int main(int argc, char *argv[])
    for(TH1 *H : HCoverageDistsFold0)   if(H != nullptr)   H->Write();
    for(TH1 *H : HCoverageDistsFold1)   if(H != nullptr)   H->Write();
 
-   for(int A = 0; A < NA; A++) {
-      if (A == 0) {
-         for(TH1 *H : HUnfolded[A])       if(H != nullptr)   H->Write();
-         for(TH1 *H : HUnfoldedFold0[A])  if(H != nullptr)   H->Write();
-         for(TH1 *H : HUnfoldedFold1[A])  if(H != nullptr)   H->Write();
-         // for(TH1 *H : HRefolded[A])       if(H != nullptr)   H->Write();
-         for(auto I : Covariance[A])      I.second.Write(I.first.c_str());
-      }
-   }
+   // for(int A = 0; A < NA; A++) {
+   //    if (A == 0) {
+   //       for(TH1 *H : HUnfolded[A])       if(H != nullptr)   H->Write();
+   //       for(TH1 *H : HUnfoldedFold0[A])  if(H != nullptr)   H->Write();
+   //       for(TH1 *H : HUnfoldedFold1[A])  if(H != nullptr)   H->Write();
+   //    }
+   // }
 
    vector<string> ToCopy
    {
@@ -807,20 +795,20 @@ TH1D *VaryWithinError(TH1D *H)
    return HVary;
 }
 
-TH1D* GetVariance(vector<vector<TH1 *>> &Asimov, vector<int> &Regularization, vector<TH1 *> &Dists, int Axis)
+TH1D* GetVariance(vector<vector<vector<double>>> &Asimov, TH1* HTruth, vector<int> &Regularization, vector<TH1 *> &Dists, int Axis);
 {
-   int NX = Asimov[0][0]->GetNbinsX();
+   int NX = Asimov[0][0]->size();
    int NA = Asimov.size();
-   int NI = Regularization.size(); cout << NI << endl; cout << Asimov[0].size() << endl;
+   int NI = Regularization.size();
 
    TH1D *Variance = new TH1D("HVariance", "", Regularization.back(), 0, Regularization.back());
 
    for(int I = 0; I < NI; I++)
    {
       vector<double> BinVariance(NX, 0);
-      if (Axis == -1) Dists.push_back((TH1D *)Asimov[0][0]->Clone(Form("HVarianceDist%d", (int) Regularization[I])));
-      if (Axis == 0)  Dists.push_back((TH1D *)Asimov[0][0]->Clone(Form("HVarianceDist%dFold0", (int) Regularization[I])));
-      if (Axis == 1)  Dists.push_back((TH1D *)Asimov[0][0]->Clone(Form("HVarianceDist%dFold1", (int) Regularization[I])));
+      if (Axis == -1) Dists.push_back((TH1D *)HTruth->Clone(Form("HVarianceDist%d", (int) Regularization[I])));
+      if (Axis == 0)  Dists.push_back((TH1D *)HTruth->Clone(Form("HVarianceDist%dFold0", (int) Regularization[I])));
+      if (Axis == 1)  Dists.push_back((TH1D *)HTruth->Clone(Form("HVarianceDist%dFold1", (int) Regularization[I])));
       Dists[I]->Reset();
 
       for(int X = 0; X < NX; X++)
@@ -829,11 +817,11 @@ TH1D* GetVariance(vector<vector<TH1 *>> &Asimov, vector<int> &Regularization, ve
          double Mean = 0;
          double Variance = 0;
 
-         for(int A = 0; A < NA; A++) Mean += Asimov[A][I]->GetBinContent(X + 1);
+         for(int A = 0; A < NA; A++) Mean += Asimov[A][I][X];
 
          Mean /= NA;
 
-         for(int A = 0; A < NA; A++) Variance += TMath::Power(Asimov[A][I]->GetBinContent(X + 1) - Mean, 2);
+         for(int A = 0; A < NA; A++) Variance += TMath::Power(Asimov[A][I][X] - Mean, 2);
 
          Variance /= NA > 1 ? (NA - 1) : NA;
 
@@ -850,9 +838,9 @@ TH1D* GetVariance(vector<vector<TH1 *>> &Asimov, vector<int> &Regularization, ve
    return Variance;
 }
 
-TH1D* GetBias(vector<vector<TH1 *>> &Asimov, TH1* HTruth, vector<int> &Regularization, vector<TH1 *> &Dists, int Axis)
+TH1D* GetBias(vector<vector<vector<double>>> &Asimov, TH1* HTruth, vector<int> &Regularization, vector<TH1 *> &Dists, int Axis)
 {
-   int NX = Asimov[0][0]->GetNbinsX();
+   int NX = Asimov[0][0]->size();
    int NA = Asimov.size();
    int NI = Regularization.size();
 
@@ -861,9 +849,9 @@ TH1D* GetBias(vector<vector<TH1 *>> &Asimov, TH1* HTruth, vector<int> &Regulariz
    for(int I = 0; I < NI; I++)
    {
       vector<double> BinBias(NX, 0);
-      if (Axis == -1) Dists.push_back((TH1D *)Asimov[0][0]->Clone(Form("HBiasDist%d", (int) Regularization[I])));
-      if (Axis == 0)  Dists.push_back((TH1D *)Asimov[0][0]->Clone(Form("HBiasDist%dFold0", (int) Regularization[I])));
-      if (Axis == 1)  Dists.push_back((TH1D *)Asimov[0][0]->Clone(Form("HBiasDist%dFold1", (int) Regularization[I])));
+      if (Axis == -1) Dists.push_back((TH1D *)HTruth->Clone(Form("HBiasDist%d", (int) Regularization[I])));
+      if (Axis == 0)  Dists.push_back((TH1D *)HTruth->Clone(Form("HBiasDist%dFold0", (int) Regularization[I])));
+      if (Axis == 1)  Dists.push_back((TH1D *)HTruth->Clone(Form("HBiasDist%dFold1", (int) Regularization[I])));
       Dists[I]->Reset();
 
       for(int X = 0; X < NX; X++)
@@ -872,7 +860,7 @@ TH1D* GetBias(vector<vector<TH1 *>> &Asimov, TH1* HTruth, vector<int> &Regulariz
          double Expectation = HTruth->GetBinContent(X + 1);
          double Bias = 0;
 
-         for(int A = 0; A < NA; A++) Bias += Asimov[A][I]->GetBinContent(X + 1) - Expectation;
+         for(int A = 0; A < NA; A++) Bias += Asimov[A][I][X] - Expectation;
 
          Bias /= NA;
 
@@ -971,4 +959,13 @@ TH1D *Collapse(TH1 *HFlat, vector<double> &BinsPrimary, vector<double> &BinsSeco
    }
 
    return HCollapse;
+}
+
+void Transfer(vector<vector<vector<double>>> &Asimov, TH1D* H, int A, int I) 
+{
+   int NX = H->GetNbinsX();
+
+   for (int X = 0; i < NX; X++) {
+      Asimov[A][I][X] = H->GetBinContent(X + 1);
+   }
 }
