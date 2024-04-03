@@ -370,24 +370,25 @@ int main(int argc, char *argv[])
 
          for(int I = 0; I < NI; I++)
          {
-            if (A == 0) HAsimov = (TH1D *) HInputReco->Clone();
-            else        HAsimov = (TH1D *) VaryWithinError(HInputReco);
+            // if (A == 0) HAsimov = (TH1D *) HInputReco->Clone();
+            // else        HAsimov = (TH1D *) VaryWithinError(HInputReco);
             
-            HAsimov->Multiply(HMeasuredEfficiency);
-            RooUnfoldBayes BayesUnfold(Response, HAsimov, Iterations[I]); 
+            // HAsimov->Multiply(HMeasuredEfficiency);
+            // RooUnfoldBayes BayesUnfold(Response, HAsimov, Iterations[I]); 
+            RooUnfoldBayes BayesUnfold(Response, HInputReco, Iterations[I]); 
             BayesUnfold.SetNToys(1000);
             BayesUnfold.SetVerbose(-1);
 
             TH1D *HTemp = (TH1D *) BayesUnfold.Hunfold(ErrorChoice);
-            HTemp->Divide(HTruthEfficiency);
+            // HTemp->Divide(HTruthEfficiency);
             // TH1D *HTempFold0 = (TH1D *) Collapse(HTemp, GenBinsPrimary, GenBinsSecondary, 0);
             // TH1D *HTempFold1 = (TH1D *) Collapse(HTemp, GenBinsPrimary, GenBinsSecondary, 1);
 
-            Transfer(HUnfolded, HTemp, A, I);
+            // Transfer(HUnfolded, HTemp, A, I);
             // Transfer(HUnfoldedFold0, HTempFold0, A, I);
             // Transfer(HUnfoldedFold1, HTempFold1, A, I);
 
-            delete HAsimov; delete HTemp; //delete HTempFold0; delete HTempFold1;
+            delete HTemp; //delete HAsimov; delete HTempFold0; delete HTempFold1;
          }
       }
 
@@ -422,24 +423,25 @@ int main(int argc, char *argv[])
             if(D >= HGen->GetNbinsX())
                continue;
 
-            if (A == 0) HAsimov = (TH1D *) HInputReco->Clone();
-            else        HAsimov = (TH1D *) VaryWithinError(HInputReco);
+            // if (A == 0) HAsimov = (TH1D *) HInputReco->Clone();
+            // else        HAsimov = (TH1D *) VaryWithinError(HInputReco);
             
-            HAsimov->Multiply(HMeasuredEfficiency);
-            RooUnfoldSvd SVDUnfold(Response, HAsimov, SVDRegularization[D]); 
+            // HAsimov->Multiply(HMeasuredEfficiency);
+            // RooUnfoldSvd SVDUnfold(Response, HAsimov, SVDRegularization[D]); 
+            RooUnfoldSvd SVDUnfold(Response, HInputReco, SVDRegularization[D]); 
             SVDUnfold.SetNToys(1000);
             SVDUnfold.SetVerbose(-1);
 
             TH1D *HTemp = (TH1D *) SVDUnfold.Hunfold(ErrorChoice);
-            HTemp->Divide(HTruthEfficiency);
+            // HTemp->Divide(HTruthEfficiency);
             // TH1D *HTempFold0 = (TH1D *) Collapse(HTemp, GenBinsPrimary, GenBinsSecondary, 0);
             // TH1D *HTempFold1 = (TH1D *) Collapse(HTemp, GenBinsPrimary, GenBinsSecondary, 1);
 
-            Transfer(HUnfolded, HTemp, A, D);
+            // Transfer(HUnfolded, HTemp, A, D);
             // Transfer(HUnfoldedFold0, HTempFold0, A, D);
             // Transfer(HUnfoldedFold1, HTempFold1, A, D);
 
-            delete HAsimov; delete HTemp; //delete HTempFold0; delete HTempFold1;
+            delete HTemp; //delete HAsimov; delete HTempFold0; delete HTempFold1;
          }
       }
 
