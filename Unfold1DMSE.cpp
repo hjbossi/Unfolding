@@ -230,7 +230,7 @@ int main(int argc, char *argv[])
 
    int NGen = HResponse->GetNbinsY();
    int NReco = HResponse->GetNbinsX();
-   int NA = 500;
+   int NA = 1000;
 
    RemoveOutOfRange(HMeasured);
    RemoveOutOfRange(HTruth);
@@ -781,7 +781,7 @@ void SetErrors(TH1 *HReco, TH1 *HErrors)
 
 TH1D *VaryWithinError(TH1D *H)
 {
-   TRandom3* Random = new TRandom3(0);
+   static TRandom3* Random = new TRandom3(0);
 
    if(H == nullptr)
       return nullptr;
@@ -793,6 +793,7 @@ TH1D *VaryWithinError(TH1D *H)
    for(int i = 1; i <= N; i++)
    {
       double Value = Random->Gaus(H->GetBinContent(i), H->GetBinError(i));
+      Value = (Value < 0) ? H->GetBinContent(i) / 20 : Value;
       HVary->SetBinContent(i, Value);
       HVary->SetBinError(i, H->GetBinError(i));
    }
