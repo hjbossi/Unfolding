@@ -375,11 +375,10 @@ int main(int argc, char *argv[])
             
             // HAsimov->Multiply(HMeasuredEfficiency);
             // RooUnfoldBayes BayesUnfold(Response, HAsimov, Iterations[I]); 
-            RooUnfoldBayes BayesUnfold(Response, HInputReco, Iterations[I]); 
-            BayesUnfold.SetNToys(1000);
-            BayesUnfold.SetVerbose(-1);
+            RooUnfoldBayes *BayesUnfold = new RooUnfoldBayes(Response, HInputReco, Iterations[I]); 
+            BayesUnfold->SetVerbose(-1);
 
-            TH1D *HTemp = (TH1D *) BayesUnfold.Hunfold(ErrorChoice);
+            TH1D *HTemp = (TH1D *) BayesUnfold->Hunfold(ErrorChoice);
             // HTemp->Divide(HTruthEfficiency);
             // TH1D *HTempFold0 = (TH1D *) Collapse(HTemp, GenBinsPrimary, GenBinsSecondary, 0);
             // TH1D *HTempFold1 = (TH1D *) Collapse(HTemp, GenBinsPrimary, GenBinsSecondary, 1);
@@ -388,7 +387,7 @@ int main(int argc, char *argv[])
             // Transfer(HUnfoldedFold0, HTempFold0, A, I);
             // Transfer(HUnfoldedFold1, HTempFold1, A, I);
 
-            delete HTemp; //delete HAsimov; delete HTempFold0; delete HTempFold1;
+            delete BayesUnfold; delete HTemp; //delete HAsimov; delete HTempFold0; delete HTempFold1;
          }
       }
 
@@ -428,11 +427,10 @@ int main(int argc, char *argv[])
             
             // HAsimov->Multiply(HMeasuredEfficiency);
             // RooUnfoldSvd SVDUnfold(Response, HAsimov, SVDRegularization[D]); 
-            RooUnfoldSvd SVDUnfold(Response, HInputReco, SVDRegularization[D]); 
-            SVDUnfold.SetNToys(1000);
-            SVDUnfold.SetVerbose(-1);
+            RooUnfoldSvd *SVDUnfold = new RooUnfoldSvd(Response, HInputReco, SVDRegularization[D]); 
+            SVDUnfold->SetVerbose(-1);
 
-            TH1D *HTemp = (TH1D *) SVDUnfold.Hunfold(ErrorChoice);
+            TH1D *HTemp = (TH1D *) SVDUnfold->Hunfold(ErrorChoice);
             // HTemp->Divide(HTruthEfficiency);
             // TH1D *HTempFold0 = (TH1D *) Collapse(HTemp, GenBinsPrimary, GenBinsSecondary, 0);
             // TH1D *HTempFold1 = (TH1D *) Collapse(HTemp, GenBinsPrimary, GenBinsSecondary, 1);
@@ -441,7 +439,7 @@ int main(int argc, char *argv[])
             // Transfer(HUnfoldedFold0, HTempFold0, A, D);
             // Transfer(HUnfoldedFold1, HTempFold1, A, D);
 
-            delete HTemp; //delete HAsimov; delete HTempFold0; delete HTempFold1;
+            delete SVDUnfold; delete HTemp; //delete HAsimov; delete HTempFold0; delete HTempFold1;
          }
       }
 
