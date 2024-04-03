@@ -355,7 +355,7 @@ int main(int argc, char *argv[])
    vector<TH1 *> HCoverageDistsFold0(0);
    vector<TH1 *> HCoverageDistsFold1(0);
 
-   TH1 *HAsimov;
+   TH1D *HAsimov;
 
    RooUnfoldResponse *Response = new RooUnfoldResponse(HReco, HGen, HResponse);
 
@@ -377,10 +377,10 @@ int main(int argc, char *argv[])
             BayesUnfold.SetNToys(1000);
             BayesUnfold.SetVerbose(-1);
 
-            TH1 *HTemp = (TH1 *) BayesUnfold.Hunfold(ErrorChoice);
+            TH1D *HTemp = (TH1D *) BayesUnfold.Hunfold(ErrorChoice);
             HTemp->Divide(HTruthEfficiency);
-            TH1 *HTempFold0 = (TH1 *) Collapse(HTemp, GenBinsPrimary, GenBinsSecondary, 0);
-            TH1 *HTempFold1 = (TH1 *) Collapse(HTemp, GenBinsPrimary, GenBinsSecondary, 1);
+            TH1D *HTempFold0 = (TH1D *) Collapse(HTemp, GenBinsPrimary, GenBinsSecondary, 0);
+            TH1D *HTempFold1 = (TH1D *) Collapse(HTemp, GenBinsPrimary, GenBinsSecondary, 1);
 
             Transfer(HUnfolded, HTemp, A, I);
             Transfer(HUnfoldedFold0, HTempFold0, A, I);
@@ -428,10 +428,10 @@ int main(int argc, char *argv[])
             SVDUnfold.SetNToys(1000);
             SVDUnfold.SetVerbose(-1);
 
-            TH1 *HTemp = (TH1 *) SVDUnfold.Hunfold(ErrorChoice);
+            TH1D *HTemp = (TH1D *) SVDUnfold.Hunfold(ErrorChoice);
             HTemp->Divide(HTruthEfficiency);
-            TH1 *HTempFold0 = (TH1 *) Collapse(HTemp, GenBinsPrimary, GenBinsSecondary, 0);
-            TH1 *HTempFold1 = (TH1 *) Collapse(HTemp, GenBinsPrimary, GenBinsSecondary, 1);
+            TH1D *HTempFold0 = (TH1D *) Collapse(HTemp, GenBinsPrimary, GenBinsSecondary, 0);
+            TH1D *HTempFold1 = (TH1D *) Collapse(HTemp, GenBinsPrimary, GenBinsSecondary, 1);
 
             Transfer(HUnfolded, HTemp, A, D);
             Transfer(HUnfoldedFold0, HTempFold0, A, D);
