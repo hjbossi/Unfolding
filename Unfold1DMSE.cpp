@@ -374,7 +374,6 @@ int main(int argc, char *argv[])
             else        HAsimov = (TH1D *) VaryWithinError(HInputReco);
             
             HAsimov->Multiply(HMeasuredEfficiency);
-            RooUnfoldBayes BayesUnfold(Response, HAsimov, Iterations[I]); 
             RooUnfoldBayes *BayesUnfold = new RooUnfoldBayes(Response, HInputReco, Iterations[I]); 
             BayesUnfold->SetVerbose(-1);
 
@@ -426,7 +425,6 @@ int main(int argc, char *argv[])
             else        HAsimov = (TH1D *) VaryWithinError(HInputReco);
             
             HAsimov->Multiply(HMeasuredEfficiency);
-            RooUnfoldSvd SVDUnfold(Response, HAsimov, SVDRegularization[D]); 
             RooUnfoldSvd *SVDUnfold = new RooUnfoldSvd(Response, HInputReco, SVDRegularization[D]); 
             SVDUnfold->SetVerbose(-1);
 
