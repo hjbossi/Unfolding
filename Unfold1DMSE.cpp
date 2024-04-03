@@ -362,18 +362,19 @@ int main(int argc, char *argv[])
    if(DoBayes == true)
    {
       vector<int> Iterations{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 105, 110, 115, 120, 125, 130, 135, 140, 145, 150};
+      int NI = Iterations.size();
 
       for(int A = 0; A < NA; A++) 
       {
          cout << A << endl;
 
-         for(int I : Iterations)
+         for(int I = 0; I < NI; I++)
          {
             if (A == 0) HAsimov = (TH1D *) HInputReco->Clone();
             else        HAsimov = (TH1D *) VaryWithinError(HInputReco);
             
             HAsimov->Multiply(HMeasuredEfficiency);
-            RooUnfoldBayes BayesUnfold(Response, HAsimov, I); 
+            RooUnfoldBayes BayesUnfold(Response, HAsimov, Iterations[I]); 
             BayesUnfold.SetNToys(1000);
             BayesUnfold.SetVerbose(-1);
 
@@ -410,12 +411,13 @@ int main(int argc, char *argv[])
    if(DoSVD == true)
    {
       vector<int> SVDRegularization{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65};
+      int ND = SVDRegularization.size();
 
       for(int A = 0; A < NA; A++) 
       {
          cout << A << endl;
 
-         for(int D : SVDRegularization)
+         for(int D = 0; D < ND; D++)
          {
             if(D >= HGen->GetNbinsX())
                continue;
@@ -424,7 +426,7 @@ int main(int argc, char *argv[])
             else        HAsimov = (TH1D *) VaryWithinError(HInputReco);
             
             HAsimov->Multiply(HMeasuredEfficiency);
-            RooUnfoldSvd SVDUnfold(Response, HAsimov, D); 
+            RooUnfoldSvd SVDUnfold(Response, HAsimov, SVDRegularization[D]); 
             SVDUnfold.SetNToys(1000);
             SVDUnfold.SetVerbose(-1);
 
