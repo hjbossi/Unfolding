@@ -373,7 +373,7 @@ int main(int argc, char *argv[])
          {
             TH1 *HAsimov;
 
-            if (A == 0) HAsimov = HInputReco->Clone();
+            if (A == 0) HAsimov = (TH1D *) HInputReco->Clone();
             else        HAsimov = (TH1D *) VaryWithinError(HInputReco);
             
             HAsimov->Multiply(HMeasuredEfficiency);
@@ -428,7 +428,7 @@ int main(int argc, char *argv[])
 
             TH1 *HAsimov;
 
-            if (A == 0) HAsimov = HInputReco->Clone();
+            if (A == 0) HAsimov = (TH1D *) HInputReco->Clone();
             else        HAsimov = (TH1D *) VaryWithinError(HInputReco);
             
             HAsimov->Multiply(HMeasuredEfficiency);
