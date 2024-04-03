@@ -795,9 +795,9 @@ TH1D *VaryWithinError(TH1D *H)
    return HVary;
 }
 
-TH1D* GetVariance(vector<vector<vector<double>>> &Asimov, TH1* HTruth, vector<int> &Regularization, vector<TH1 *> &Dists, int Axis);
+TH1D* GetVariance(vector<vector<vector<double>>> &Asimov, TH1* HTruth, vector<int> &Regularization, vector<TH1 *> &Dists, int Axis)
 {
-   int NX = Asimov[0][0]->size();
+   int NX = Asimov[0][0].size();
    int NA = Asimov.size();
    int NI = Regularization.size();
 
@@ -840,7 +840,7 @@ TH1D* GetVariance(vector<vector<vector<double>>> &Asimov, TH1* HTruth, vector<in
 
 TH1D* GetBias(vector<vector<vector<double>>> &Asimov, TH1* HTruth, vector<int> &Regularization, vector<TH1 *> &Dists, int Axis)
 {
-   int NX = Asimov[0][0]->size();
+   int NX = Asimov[0][0].size();
    int NA = Asimov.size();
    int NI = Regularization.size();
 
@@ -965,7 +965,7 @@ void Transfer(vector<vector<vector<double>>> &Asimov, TH1D* H, int A, int I)
 {
    int NX = H->GetNbinsX();
 
-   for (int X = 0; i < NX; X++) {
+   for (int X = 0; X < NX; X++) {
       Asimov[A][I][X] = H->GetBinContent(X + 1);
    }
 }
