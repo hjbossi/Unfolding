@@ -497,14 +497,6 @@ int main(int argc, char *argv[])
    for(TH1 *H : HCoverageDistsFold0)   if(H != nullptr)   H->Write();
    for(TH1 *H : HCoverageDistsFold1)   if(H != nullptr)   H->Write();
 
-   for(int A = 0; A < NA; A++) {
-      if (A == 0) {
-         for(TH1 *H : HUnfolded[A])       if(H != nullptr)   H->Write();
-         for(TH1 *H : HUnfoldedFold0[A])  if(H != nullptr)   H->Write();
-         for(TH1 *H : HUnfoldedFold1[A])  if(H != nullptr)   H->Write();
-      }
-   }
-
    vector<string> ToCopy
    {
       "MCEventCount", "MCAllEventCount", "MCBaselineEventCount",
