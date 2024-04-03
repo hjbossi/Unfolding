@@ -966,9 +966,6 @@ TH1D *Collapse(TH1 *HFlat, vector<double> &BinsPrimary, vector<double> &BinsSeco
 void Transfer(vector<vector<vector<double>>> &Asimov, TH1D* H, int A, int I) 
 {
    int NX = H->GetNbinsX();
-   cout << A << " " << I << endl;
-   cout << NX << endl;
-   cout << Asimov.size() << " " << Asimov[0].size() << " " << Asimov[0][0].size() << endl;
 
    for (int X = 0; X < NX; X++) {
       Asimov[A][I][X] = H->GetBinContent(X + 1);
