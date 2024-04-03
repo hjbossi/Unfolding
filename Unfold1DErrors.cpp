@@ -349,6 +349,7 @@ int main(int argc, char *argv[])
          for(int I : Iterations)
          {
             BayesUnfold.SetIterations(I);
+            
             HUnfolded[A].push_back((TH1 *)(BayesUnfold.Hunfold(ErrorChoice)->Clone(Form("Test%dHUnfoldedBayes%d", A, I))));
             if (A == 0) Covariance.insert(pair<string, TMatrixD>(Form("MUnfoldedBayes%d", I), BayesUnfold.Eunfold()));
             // TH1D *HFold = ForwardFold(HUnfolded[A][HUnfolded[A].size()-1], HResponse);
