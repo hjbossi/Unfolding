@@ -419,7 +419,7 @@ int main(int argc, char *argv[])
       {
          cout << A << endl;
 
-         RooUnfoldSvd SVDUnfold(Response, HAsimov[A], D); 
+         RooUnfoldSvd SVDUnfold(Response, HAsimov[A], 1); 
          SVDUnfold.SetNToys(1000);
          SVDUnfold.SetVerbose(-1);
 
