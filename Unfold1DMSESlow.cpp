@@ -40,8 +40,8 @@ TH1D *ForwardFold(TH1 *HGen, TH2D *HResponse, TH1 *HErrors = nullptr);
 void SetErrors(TH1 *HReco, TH1 *HErrors);
 TH1D *Collapse(TH1 *HFlat, vector<double> &BinsPrimary, vector<double> &BinsSecondary, int Axis);
 TH1D *VaryWithinError(TH1D *H);
-TH1D* GetVariance(vector<vector<vector<double>>> &Asimov, vector<int> &Regularization, vector<TH1 *> &Dists, int Axis = -1);
-TH1D* GetBias(vector<vector<vector<double>>> &Asimov, TH1* HTruth, vector<int> &Regularization, vector<TH1 *> &Dists, int Axis = -1);
+TH1D* GetVariance(vector<vector<TH1 *>> &Asimov, vector<int> &Regularization, vector<TH1 *> &Dists, int Axis = -1);
+TH1D* GetBias(vector<vector<TH1 *>> &Asimov, TH1* HTruth, vector<int> &Regularization, vector<TH1 *> &Dists, int Axis = -1);
 TH1D* GetMSE(TH1* Variance, TH1* Bias, int Axis = -1);
 TH1D* GetCoverage(vector<TH1 *> &VarianceDists, vector<TH1 *> &BiasDists, vector<TH1 *> &CoverageDists, vector<int> &Regularization, int Axis = -1);
 
@@ -230,7 +230,7 @@ int main(int argc, char *argv[])
 
    int NGen = HResponse->GetNbinsY();
    int NReco = HResponse->GetNbinsX();
-   int NA = 50;
+   int NA = 1000;
 
    RemoveOutOfRange(HMeasured);
    RemoveOutOfRange(HTruth);
@@ -322,6 +322,7 @@ int main(int argc, char *argv[])
    TH1D *HInputGenFold0 = Collapse(HInputGen, GenBinsPrimary, GenBinsSecondary, 0);
    TH1D *HInputGenFold1 = Collapse(HInputGen, GenBinsPrimary, GenBinsSecondary, 1);
 
+   vector<TH1 *> HAsimov;
    vector<vector<TH1 *>> HUnfolded(NA, vector<TH1 *>(0));
    vector<vector<TH1 *>> HUnfoldedFold0(NA, vector<TH1 *>(0));
    vector<vector<TH1 *>> HUnfoldedFold1(NA, vector<TH1 *>(0));
@@ -359,6 +360,12 @@ int main(int argc, char *argv[])
 
    RooUnfoldResponse *Response = new RooUnfoldResponse(HReco, HGen, HResponse);
 
+   for(int A = 0; A < NA; A++) {
+      if (A == 0) HAsimov.push_back((TH1D *) HInputReco->Clone(Form("HTest%d", A)));
+      else        HAsimov.push_back((TH1D *) VaryWithinError(HInputReco)->Clone(Form("HTest%d", A)));
+      HAsimov[A]->Multiply(HMeasuredEfficiency);
+   }
+
    if(DoBayes == true)
    {
       vector<int> Iterations{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 105, 110, 115, 120, 125, 130, 135, 140, 145, 150};
@@ -369,13 +376,7 @@ int main(int argc, char *argv[])
 
          for(int I : Iterations)
          {
-            TH1 *HAsimov;
-
-            if (A == 0) HAsimov = HInputReco->Clone();
-            else        HAsimov = (TH1D *) VaryWithinError(HInputReco);
-            
-            HAsimov->Multiply(HMeasuredEfficiency);
-            RooUnfoldBayes BayesUnfold(Response, HAsimov, I); 
+            RooUnfoldBayes BayesUnfold(Response, HAsimov[A], I); 
             BayesUnfold.SetNToys(1000);
             BayesUnfold.SetVerbose(-1);
 
@@ -389,8 +390,6 @@ int main(int argc, char *argv[])
             HUnfoldedFold0[A].push_back((TH1 *) Collapse(HUnfolded[A].back(), GenBinsPrimary, GenBinsSecondary, 0)->Clone(Form("Test%dHUnfoldedBayes%dFold0", A, I)));
             HUnfoldedFold1[A].push_back((TH1 *) Collapse(HUnfolded[A].back(), GenBinsPrimary, GenBinsSecondary, 1)->Clone(Form("Test%dHUnfoldedBayes%dFold1", A, I)));
             // HRefolded[A].push_back(HFold);
-
-            delete HAsimov;
          }
       }
 
@@ -424,13 +423,7 @@ int main(int argc, char *argv[])
             if(D >= HGen->GetNbinsX())
                continue;
 
-            TH1 *HAsimov;
-
-            if (A == 0) HAsimov = HInputReco->Clone();
-            else        HAsimov = (TH1D *) VaryWithinError(HInputReco);
-            
-            HAsimov->Multiply(HMeasuredEfficiency);
-            RooUnfoldSvd SVDUnfold(Response, HAsimov, D); 
+            RooUnfoldSvd SVDUnfold(Response, HAsimov[A], D); 
             SVDUnfold.SetNToys(1000);
             SVDUnfold.SetVerbose(-1);
 
@@ -444,8 +437,6 @@ int main(int argc, char *argv[])
             HUnfoldedFold0[A].push_back((TH1 *) Collapse(HUnfolded[A].back(), GenBinsPrimary, GenBinsSecondary, 0)->Clone(Form("Test%dHUnfoldedSVD%dFold0", A, D)));
             HUnfoldedFold1[A].push_back((TH1 *) Collapse(HUnfolded[A].back(), GenBinsPrimary, GenBinsSecondary, 1)->Clone(Form("Test%dHUnfoldedSVD%dFold1", A, D)));
             // HRefolded[A].push_back(HFold);
-
-            delete HAsimov;
          }
       }
 
@@ -495,6 +486,7 @@ int main(int argc, char *argv[])
    HCoverageFold0->Clone("HCoverageFold0")->Write();
    HCoverageFold1->Clone("HCoverageFold1")->Write();
 
+   // for(TH1 *H : HAsimov)              if(H != nullptr)   H->Write();
    for(TH1 *H : HVarianceDists)        if(H != nullptr)   H->Write();
    for(TH1 *H : HVarianceDistsFold0)   if(H != nullptr)   H->Write();
    for(TH1 *H : HVarianceDistsFold1)   if(H != nullptr)   H->Write();
@@ -786,7 +778,7 @@ void SetErrors(TH1 *HReco, TH1 *HErrors)
 
 TH1D *VaryWithinError(TH1D *H)
 {
-   static TRandom3* Random = new TRandom3(0);
+   TRandom3* Random = new TRandom3(0);
 
    if(H == nullptr)
       return nullptr;
