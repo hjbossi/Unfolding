@@ -7,7 +7,7 @@ Prior=${4}
 
 Type=kErrors
 
-if [[${Algorithm} == "Bayes"]]; then
+if [[ ${Algorithm} == "Bayes" ]]; then
     mkdir -p /data/submit/mitay/unfolding/${Date}/Output/Theory/${Tag}/Bayes/${Prior}/${Type}/
     mkdir -p /data/submit/mitay/unfolding/${Date}/Output/Theory/${Tag}/Bayes/${Prior}/${Type}/log/
 
@@ -21,7 +21,7 @@ if [[${Algorithm} == "Bayes"]]; then
     done
 fi
 
-if [[${Algorithm} == "SVD"]]; then
+if [[ ${Algorithm} == "SVD" ]]; then
     mkdir -p /data/submit/mitay/unfolding/${Date}/Output/Theory/${Tag}/SVD/${Prior}/${Type}/
     mkdir -p /data/submit/mitay/unfolding/${Date}/Output/Theory/${Tag}/SVD/${Prior}/${Type}/log/
 
