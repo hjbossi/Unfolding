@@ -40,8 +40,10 @@ TH1D *ForwardFold(TH1 *HGen, TH2D *HResponse, TH1 *HErrors = nullptr);
 void SetErrors(TH1 *HReco, TH1 *HErrors);
 TH1D *Collapse(TH1 *HFlat, vector<double> &BinsPrimary, vector<double> &BinsSecondary, int Axis);
 TH1D *VaryWithinError(TH1D *H);
-TH1D* GetVariance(vector<vector<vector<double>>> &Asimov, vector<int> &Regularization, vector<TH1 *> &Dists, int Axis = -1);
-TH1D* GetBias(vector<vector<vector<double>>> &Asimov, TH1* HTruth, vector<int> &Regularization, vector<TH1 *> &Dists, int Axis = -1);
+TH1D* GetVariance(vector<vector<TH1 *>> &Asimov, vector<int> &Regularization, vector<TH1 *> &Dists, int Axis = -1);
+TH1D* GetBias(vector<vector<TH1 *>> &Asimov, TH1* HTruth, vector<int> &Regularization, vector<TH1 *> &Dists, int Axis = -1);
+// TH1D* GetVariance(vector<vector<vector<double>>> &Asimov, vector<int> &Regularization, vector<TH1 *> &Dists, int Axis = -1);
+// TH1D* GetBias(vector<vector<vector<double>>> &Asimov, TH1* HTruth, vector<int> &Regularization, vector<TH1 *> &Dists, int Axis = -1);
 TH1D* GetMSE(TH1* Variance, TH1* Bias, int Axis = -1);
 TH1D* GetCoverage(vector<TH1 *> &VarianceDists, vector<TH1 *> &BiasDists, vector<TH1 *> &CoverageDists, vector<int> &Regularization, int Axis = -1);
 
