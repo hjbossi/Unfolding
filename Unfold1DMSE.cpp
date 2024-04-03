@@ -324,36 +324,36 @@ int main(int argc, char *argv[])
    TH1D *HInputGenFold1 = Collapse(HInputGen, GenBinsPrimary, GenBinsSecondary, 1);
 
    vector<vector<vector<double>>> HUnfolded(NA, vector<vector<double>>(65, vector<double>(NGen, 0)));
-   vector<vector<vector<double>>> HUnfoldedFold0(NA, vector<vector<double>>(65, vector<double>(GenBinsPrimary.size(), 0)));
-   vector<vector<vector<double>>> HUnfoldedFold1(NA, vector<vector<double>>(65, vector<double>(GenBinsSecondary.size(), 0)));
+   // vector<vector<vector<double>>> HUnfoldedFold0(NA, vector<vector<double>>(65, vector<double>(GenBinsPrimary.size(), 0)));
+   // vector<vector<vector<double>>> HUnfoldedFold1(NA, vector<vector<double>>(65, vector<double>(GenBinsSecondary.size(), 0)));
 
    TH1D *HVariance;
-   TH1D *HVarianceFold0;
-   TH1D *HVarianceFold1;
+   // TH1D *HVarianceFold0;
+   // TH1D *HVarianceFold1;
 
    TH1D *HBias;
-   TH1D *HBiasFold0;
-   TH1D *HBiasFold1;
+   // TH1D *HBiasFold0;
+   // TH1D *HBiasFold1;
 
    TH1D *HMSE;
-   TH1D *HMSEFold0;
-   TH1D *HMSEFold1;
+   // TH1D *HMSEFold0;
+   // TH1D *HMSEFold1;
 
    TH1D *HCoverage;
-   TH1D *HCoverageFold0;
-   TH1D *HCoverageFold1;
+   // TH1D *HCoverageFold0;
+   // TH1D *HCoverageFold1;
 
    vector<TH1 *> HVarianceDists(0);
-   vector<TH1 *> HVarianceDistsFold0(0);
-   vector<TH1 *> HVarianceDistsFold1(0);
+   // vector<TH1 *> HVarianceDistsFold0(0);
+   // vector<TH1 *> HVarianceDistsFold1(0);
 
    vector<TH1 *> HBiasDists(0);
-   vector<TH1 *> HBiasDistsFold0(0);
-   vector<TH1 *> HBiasDistsFold1(0);
+   // vector<TH1 *> HBiasDistsFold0(0);
+   // vector<TH1 *> HBiasDistsFold1(0);
 
    vector<TH1 *> HCoverageDists(0);
-   vector<TH1 *> HCoverageDistsFold0(0);
-   vector<TH1 *> HCoverageDistsFold1(0);
+   // vector<TH1 *> HCoverageDistsFold0(0);
+   // vector<TH1 *> HCoverageDistsFold1(0);
 
    TH1D *HAsimov;
 
@@ -380,32 +380,32 @@ int main(int argc, char *argv[])
 
             TH1D *HTemp = (TH1D *) BayesUnfold.Hunfold(ErrorChoice);
             HTemp->Divide(HTruthEfficiency);
-            TH1D *HTempFold0 = (TH1D *) Collapse(HTemp, GenBinsPrimary, GenBinsSecondary, 0);
-            TH1D *HTempFold1 = (TH1D *) Collapse(HTemp, GenBinsPrimary, GenBinsSecondary, 1);
+            // TH1D *HTempFold0 = (TH1D *) Collapse(HTemp, GenBinsPrimary, GenBinsSecondary, 0);
+            // TH1D *HTempFold1 = (TH1D *) Collapse(HTemp, GenBinsPrimary, GenBinsSecondary, 1);
 
             Transfer(HUnfolded, HTemp, A, I);
-            Transfer(HUnfoldedFold0, HTempFold0, A, I);
-            Transfer(HUnfoldedFold1, HTempFold1, A, I);
+            // Transfer(HUnfoldedFold0, HTempFold0, A, I);
+            // Transfer(HUnfoldedFold1, HTempFold1, A, I);
 
-            delete HAsimov; delete HTemp; delete HTempFold0; delete HTempFold1;
+            delete HAsimov; delete HTemp; //delete HTempFold0; delete HTempFold1;
          }
       }
 
       HVariance = GetVariance(HUnfolded, HInputGen, Iterations, HVarianceDists);
-      HVarianceFold0 = GetVariance(HUnfoldedFold0, HInputGenFold0, Iterations, HVarianceDistsFold0, 0);
-      HVarianceFold1 = GetVariance(HUnfoldedFold1, HInputGenFold1, Iterations, HVarianceDistsFold1, 1);
+      // HVarianceFold0 = GetVariance(HUnfoldedFold0, HInputGenFold0, Iterations, HVarianceDistsFold0, 0);
+      // HVarianceFold1 = GetVariance(HUnfoldedFold1, HInputGenFold1, Iterations, HVarianceDistsFold1, 1);
 
       HBias = GetBias(HUnfolded, HInputGen, Iterations, HBiasDists);
-      HBiasFold0 = GetBias(HUnfoldedFold0, HInputGenFold0, Iterations, HBiasDistsFold0, 0);
-      HBiasFold1 = GetBias(HUnfoldedFold1, HInputGenFold1, Iterations, HBiasDistsFold1, 1);
+      // HBiasFold0 = GetBias(HUnfoldedFold0, HInputGenFold0, Iterations, HBiasDistsFold0, 0);
+      // HBiasFold1 = GetBias(HUnfoldedFold1, HInputGenFold1, Iterations, HBiasDistsFold1, 1);
       
       HMSE = GetMSE(HVariance, HBias);
-      HMSEFold0 = GetMSE(HVarianceFold0, HBiasFold0);
-      HMSEFold1 = GetMSE(HVarianceFold1, HBiasFold1);
+      // HMSEFold0 = GetMSE(HVarianceFold0, HBiasFold0);
+      // HMSEFold1 = GetMSE(HVarianceFold1, HBiasFold1);
 
       HCoverage = GetCoverage(HVarianceDists, HBiasDists, HCoverageDists, Iterations);
-      HCoverageFold0 = GetCoverage(HVarianceDistsFold0, HBiasDistsFold0, HCoverageDistsFold0, Iterations, 0);
-      HCoverageFold1 = GetCoverage(HVarianceDistsFold1, HBiasDistsFold1, HCoverageDistsFold1, Iterations, 1);
+      // HCoverageFold0 = GetCoverage(HVarianceDistsFold0, HBiasDistsFold0, HCoverageDistsFold0, Iterations, 0);
+      // HCoverageFold1 = GetCoverage(HVarianceDistsFold1, HBiasDistsFold1, HCoverageDistsFold1, Iterations, 1);
    }
 
    if(DoSVD == true)
@@ -432,14 +432,14 @@ int main(int argc, char *argv[])
 
             TH1D *HTemp = (TH1D *) SVDUnfold.Hunfold(ErrorChoice);
             HTemp->Divide(HTruthEfficiency);
-            TH1D *HTempFold0 = (TH1D *) Collapse(HTemp, GenBinsPrimary, GenBinsSecondary, 0);
-            TH1D *HTempFold1 = (TH1D *) Collapse(HTemp, GenBinsPrimary, GenBinsSecondary, 1);
+            // TH1D *HTempFold0 = (TH1D *) Collapse(HTemp, GenBinsPrimary, GenBinsSecondary, 0);
+            // TH1D *HTempFold1 = (TH1D *) Collapse(HTemp, GenBinsPrimary, GenBinsSecondary, 1);
 
             Transfer(HUnfolded, HTemp, A, D);
-            Transfer(HUnfoldedFold0, HTempFold0, A, D);
-            Transfer(HUnfoldedFold1, HTempFold1, A, D);
+            // Transfer(HUnfoldedFold0, HTempFold0, A, D);
+            // Transfer(HUnfoldedFold1, HTempFold1, A, D);
 
-            delete HAsimov; delete HTemp; delete HTempFold0; delete HTempFold1;
+            delete HAsimov; delete HTemp; //delete HTempFold0; delete HTempFold1;
          }
       }
 
@@ -477,27 +477,27 @@ int main(int argc, char *argv[])
    HInputGenFold0->Clone("HInputGenFold0")->Write();
    HInputGenFold1->Clone("HInputGenFold1")->Write();
    HVariance->Clone("HVariance")->Write();
-   HVarianceFold0->Clone("HVarianceFold0")->Write();
-   HVarianceFold1->Clone("HVarianceFold1")->Write();
+   // HVarianceFold0->Clone("HVarianceFold0")->Write();
+   // HVarianceFold1->Clone("HVarianceFold1")->Write();
    HBias->Clone("HBias")->Write();
-   HBiasFold0->Clone("HBiasFold0")->Write();
-   HBiasFold1->Clone("HBiasFold1")->Write();
+   // HBiasFold0->Clone("HBiasFold0")->Write();
+   // HBiasFold1->Clone("HBiasFold1")->Write();
    HMSE->Clone("HMSE")->Write();
-   HMSEFold0->Clone("HMSEFold0")->Write();
-   HMSEFold1->Clone("HMSEFold1")->Write();
+   // HMSEFold0->Clone("HMSEFold0")->Write();
+   // HMSEFold1->Clone("HMSEFold1")->Write();
    HCoverage->Clone("HCoverage")->Write();
-   HCoverageFold0->Clone("HCoverageFold0")->Write();
-   HCoverageFold1->Clone("HCoverageFold1")->Write();
+   // HCoverageFold0->Clone("HCoverageFold0")->Write();
+   // HCoverageFold1->Clone("HCoverageFold1")->Write();
 
    for(TH1 *H : HVarianceDists)        if(H != nullptr)   H->Write();
-   for(TH1 *H : HVarianceDistsFold0)   if(H != nullptr)   H->Write();
-   for(TH1 *H : HVarianceDistsFold1)   if(H != nullptr)   H->Write();
+   // for(TH1 *H : HVarianceDistsFold0)   if(H != nullptr)   H->Write();
+   // for(TH1 *H : HVarianceDistsFold1)   if(H != nullptr)   H->Write();
    for(TH1 *H : HBiasDists)            if(H != nullptr)   H->Write();
-   for(TH1 *H : HBiasDistsFold0)       if(H != nullptr)   H->Write();
-   for(TH1 *H : HBiasDistsFold1)       if(H != nullptr)   H->Write();
+   // for(TH1 *H : HBiasDistsFold0)       if(H != nullptr)   H->Write();
+   // for(TH1 *H : HBiasDistsFold1)       if(H != nullptr)   H->Write();
    for(TH1 *H : HCoverageDists)        if(H != nullptr)   H->Write();
-   for(TH1 *H : HCoverageDistsFold0)   if(H != nullptr)   H->Write();
-   for(TH1 *H : HCoverageDistsFold1)   if(H != nullptr)   H->Write();
+   // for(TH1 *H : HCoverageDistsFold0)   if(H != nullptr)   H->Write();
+   // for(TH1 *H : HCoverageDistsFold1)   if(H != nullptr)   H->Write();
 
    // for(int A = 0; A < NA; A++) {
    //    if (A == 0) {
