@@ -444,20 +444,20 @@ int main(int argc, char *argv[])
       }
 
       HVariance = GetVariance(HUnfolded, HInputGen, SVDRegularization, HVarianceDists);
-      HVarianceFold0 = GetVariance(HUnfoldedFold0, HInputGenFold0, SVDRegularization, HVarianceDistsFold0, 0);
-      HVarianceFold1 = GetVariance(HUnfoldedFold1, HInputGenFold1, SVDRegularization, HVarianceDistsFold1, 1);
+      // HVarianceFold0 = GetVariance(HUnfoldedFold0, HInputGenFold0, SVDRegularization, HVarianceDistsFold0, 0);
+      // HVarianceFold1 = GetVariance(HUnfoldedFold1, HInputGenFold1, SVDRegularization, HVarianceDistsFold1, 1);
 
       HBias = GetBias(HUnfolded, HInputGen, SVDRegularization, HBiasDists);
-      HBiasFold0 = GetBias(HUnfoldedFold0, HInputGenFold0, SVDRegularization, HBiasDistsFold0, 0);
-      HBiasFold1 = GetBias(HUnfoldedFold1, HInputGenFold1, SVDRegularization, HBiasDistsFold1, 1);
+      // HBiasFold0 = GetBias(HUnfoldedFold0, HInputGenFold0, SVDRegularization, HBiasDistsFold0, 0);
+      // HBiasFold1 = GetBias(HUnfoldedFold1, HInputGenFold1, SVDRegularization, HBiasDistsFold1, 1);
       
       HMSE = GetMSE(HVariance, HBias);
-      HMSEFold0 = GetMSE(HVarianceFold0, HBiasFold0);
-      HMSEFold1 = GetMSE(HVarianceFold1, HBiasFold1);
+      // HMSEFold0 = GetMSE(HVarianceFold0, HBiasFold0);
+      // HMSEFold1 = GetMSE(HVarianceFold1, HBiasFold1);
 
       HCoverage = GetCoverage(HVarianceDists, HBiasDists, HCoverageDists, SVDRegularization);
-      HCoverageFold0 = GetCoverage(HVarianceDistsFold0, HBiasDistsFold0, HCoverageDistsFold0, SVDRegularization, 0);
-      HCoverageFold1 = GetCoverage(HVarianceDistsFold1, HBiasDistsFold1, HCoverageDistsFold1, SVDRegularization, 1);
+      // HCoverageFold0 = GetCoverage(HVarianceDistsFold0, HBiasDistsFold0, HCoverageDistsFold0, SVDRegularization, 0);
+      // HCoverageFold1 = GetCoverage(HVarianceDistsFold1, HBiasDistsFold1, HCoverageDistsFold1, SVDRegularization, 1);
    }
 
    TFile OutputFile(Output.c_str(), "RECREATE");
