@@ -222,7 +222,7 @@ int main(int argc, char *argv[])
 
    int NGen = HResponse->GetNbinsY();
    int NReco = HResponse->GetNbinsX();
-   int NA = 2500;
+   int NA = (DoSVD) ? 1500 : 2500;
 
    RemoveOutOfRange(HMeasured);
    RemoveOutOfRange(HTruth);
