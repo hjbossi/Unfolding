@@ -427,7 +427,7 @@ int main(int argc, char *argv[])
             if(D >= HGen->GetNbinsX())
                continue;
 
-            SVDUnfold.SetKterm(D);
+            SVDUnfold.SetRegParm(D);
 
             HUnfolded[A].push_back((TH1 *)(SVDUnfold.Hunfold(ErrorChoice)->Clone(Form("Test%dHUnfoldedSVD%d", A, D))));
             // Covariance[A].insert(pair<string, TMatrixD>(Form("Test%dMUnfoldedSVD%d", A, D), SVDUnfold.Eunfold()));
