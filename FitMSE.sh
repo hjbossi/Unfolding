@@ -31,6 +31,6 @@ if [[ ${Algorithm} == "SVD" ]]; then
     do
         echo $i
         # ./ExecuteMSE --Input /data/submit/mitay/unfolding/${Date}/Input/Theory/${Tag}/$i --Output /data/submit/mitay/unfolding/${Date}/Output/Theory/${Tag}/SVD/${Prior}/${Type}/$i --Prior ${Prior} --DoBayes false --DoRepeatedBayes false --DoSVD true --DoTSVD false --DoInvert false --DoTUnfold false --DoFit false --Error ${Type} > /data/submit/mitay/unfolding/${Date}/Output/Theory/${Tag}/SVD/${Prior}/${Type}/log/$i.txt 2>&1  &
-        echo "./ExecuteMSE --Input /data/submit/mitay/unfolding/${Date}/Input/Theory/${Tag}/$i --Output /data/submit/mitay/unfolding/${Date}/Output/Theory/${Tag}/Bayes/${Prior}/${Type}/$i --Prior ${Prior} --DoBayes true --DoRepeatedBayes false --DoSVD false --DoTSVD false --DoInvert false --DoTUnfold false --DoFit false --Error ${Type} > /data/submit/mitay/unfolding/${Date}/Output/Theory/${Tag}/Bayes/${Prior}/${Type}/log/$i.txt 2>&1  &"
+        echo "./ExecuteMSE --Input /data/submit/mitay/unfolding/${Date}/Input/Theory/${Tag}/$i --Output /data/submit/mitay/unfolding/${Date}/Output/Theory/${Tag}/SVD/${Prior}/${Type}/$i --Prior ${Prior} --DoBayes false --DoRepeatedBayes false --DoSVD true --DoTSVD false --DoInvert false --DoTUnfold false --DoFit false --Error ${Type} > /data/submit/mitay/unfolding/${Date}/Output/Theory/${Tag}/SVD/${Prior}/${Type}/log/$i.txt 2>&1  &"
     done
 fi
