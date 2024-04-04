@@ -379,15 +379,13 @@ int main(int argc, char *argv[])
       {
          cout << A << endl;
 
-         RooUnfoldSvd SVDUnfold(Response, HAsimov[A], 1); 
-         SVDUnfold.SetVerbose(-1);
-
          for(int D : SVDRegularization)
          {
             if(D >= HGen->GetNbinsX())
                continue;
 
-            SVDUnfold.SetKterm(D);
+            RooUnfoldSvd SVDUnfold(Response, HAsimov[A], D); 
+            SVDUnfold.SetVerbose(-1);
 
             HUnfolded[A].push_back((TH1 *)(SVDUnfold.Hunfold(ErrorChoice)->Clone(Form("Test%dHUnfoldedSVD%d", A, D))));
             if (A == 0) Covariance.insert(pair<string, TMatrixD>(Form("MUnfoldedSVD%d", D), SVDUnfold.Eunfold()));
