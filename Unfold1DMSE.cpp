@@ -375,7 +375,6 @@ int main(int argc, char *argv[])
          cout << A << endl;
 
          RooUnfoldBayes BayesUnfold(Response, HAsimov[A], 1); 
-         BayesUnfold.SetNToys(1000);
          BayesUnfold.SetVerbose(-1);
 
          for(int I : Iterations)
@@ -421,7 +420,6 @@ int main(int argc, char *argv[])
          cout << A << endl;
 
          RooUnfoldSvd SVDUnfold(Response, HAsimov[A], 1); 
-         SVDUnfold.SetNToys(1000);
          SVDUnfold.SetVerbose(-1);
 
          for(int D : SVDRegularization)
